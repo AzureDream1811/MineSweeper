@@ -45,22 +45,13 @@ Dự án tập trung vào việc xây dựng ứng dụng Desktop chạy độc 
 
 ## 2. Đối tượng người dùng & User Stories
 
-### 2.1. Người chơi giải trí (Casual Players)
-
-> **Đặc điểm:** Cần sự thoải mái, dễ hiểu, không muốn bị áp lực.
+### Người chơi giải trí (Players)
 
 | Mã | User Story |
 |:---:|:---|
 | **US-01** | Là người chơi giải trí, tôi muốn hệ thống hiển thị số mìn xung quanh ô và cho phép đánh dấu ô nghi ngờ bằng cờ, để xác định vị trí nguy hiểm và suy luận mà không bị nhầm lẫn. |
 | **US-02** | Là người không có nhiều thời gian, tôi muốn hệ thống tự động mở các ô trống xung quanh khi click vào ô không có mìn lân cận, để tiết kiệm thời gian và tập trung vào phần cần suy luận. |
 | **US-03** | Là người chơi mới, tôi muốn hệ thống hỗ trợ luật chơi và các chức năng cơ bản (tạo game mới, chơi lại, dừng, chơi tiếp) để dễ dàng hiểu và thao tác với game. |
-
-### 2.2. Người chơi chuyên nghiệp (Speedrunners)
-
-> **Đặc điểm:** Cạnh tranh về thời gian, cần độ chính xác và tốc độ thao tác cực cao.
-
-| Mã | User Story |
-|:---:|:---|
 | **US-04** | Là người chơi chuyên nghiệp, tôi muốn hệ thống có bảng xếp hạng (High Score) ghi lại thời gian hoàn thành chính xác đến từng mili giây cho từng mức độ khó, để theo dõi tiến bộ và so sánh kỷ lục với người khác. |
 
 ---
