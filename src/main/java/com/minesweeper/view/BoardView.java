@@ -2,7 +2,6 @@ package com.minesweeper.view;
 
 import com.minesweeper.model.Cell;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.GridPane;
 
 import java.util.function.BiConsumer;

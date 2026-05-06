@@ -2,9 +2,6 @@ package com.minesweeper.view;
 import com.minesweeper.model.Cell;
 import javafx.scene.control.Button;
 
-import com.minesweeper.model.Cell;
-import javafx.scene.control.Button;
-
 public class CellView extends Button {
 
     public static final int CELL_SIZE = 36;
