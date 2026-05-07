@@ -1,10 +1,12 @@
 package com.minesweeper.view;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
 public class MainView {
 
@@ -44,6 +46,12 @@ public class MainView {
     public void showGame() {
         menuView.getRoot().setVisible(false);
         gameLayer.setVisible(true);
+        Platform.runLater(() -> {
+            Stage stage = (Stage) scene.getWindow();
+            if (stage != null) {
+                stage.sizeToScene();
+            }
+        });
     }
 
     public void showMenu() {

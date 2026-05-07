@@ -7,13 +7,14 @@ import javafx.scene.control.Button;
 
 public class CellView extends Button {
 
-    public static final int CELL_SIZE = 36;
+    public static final int CELL_SIZE = 30;
 
     private final int row, col;
 
     public CellView(int row, int col) {
         this.row = row;
         this.col = col;
+        setPrefSize(CELL_SIZE, CELL_SIZE);
         setMinSize(CELL_SIZE, CELL_SIZE);
         setMaxSize(CELL_SIZE, CELL_SIZE);
         getStyleClass().add("cell-hidden");

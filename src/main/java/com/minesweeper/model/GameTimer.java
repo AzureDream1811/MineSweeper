@@ -40,53 +40,31 @@ public class GameTimer {
      * Timeline được cấu hình nhưng chưa chạy cho đến khi gọi {@link #start()}.
      */
     public GameTimer() {
-        // TODO: khởi tạo timeline với KeyFrame 1 giây,
-        //       mỗi frame tăng elapsedSeconds lên 1
-        //       timeline.setCycleCount(Timeline.INDEFINITE)
+        timeline = new Timeline(
+                new KeyFrame(Duration.seconds(1), e -> {
+                    if (elapsedSeconds.get() < 999) // giới hạn tối đa như Minesweeper gốc
+                        elapsedSeconds.set(elapsedSeconds.get() + 1);
+                })
+        );
+        timeline.setCycleCount(Timeline.INDEFINITE);
     }
 
-    // ── Control ───────────────────────────────────────────────
-
-    /**
-     * Bắt đầu (hoặc tiếp tục) đếm giờ.
-     * Gọi khi người chơi mở ô đầu tiên — FR-06, UR-12.
-     */
     public void start() {
-        // TODO: timeline.play()
+        timeline.play();
     }
 
-    /**
-     * Tạm dừng đồng hồ, giữ nguyên số giây hiện tại.
-     * FR-03
-     */
     public void pause() {
-        // TODO: timeline.pause()
+        timeline.pause();
     }
 
-    /**
-     * Tiếp tục đếm từ số giây đang giữ.
-     * FR-04
-     */
     public void resume() {
-        // TODO: timeline.play()
+        timeline.play();
     }
 
-    /**
-     * Dừng và đặt lại về 0.
-     * Gọi khi bắt đầu ván mới — FR-01, FR-02.
-     */
     public void reset() {
-        // TODO: timeline.stop(), elapsedSeconds.set(0)
+        timeline.stop();
+        elapsedSeconds.set(0);
     }
-
-    // ── Getters ───────────────────────────────────────────────
-
-    /**
-     * Trả về IntegerProperty để HeaderView bind — Observer pattern.
-     * FR-06
-     *
-     * @return elapsedSeconds property
-     */
     public IntegerProperty elapsedSecondsProperty() {
         return elapsedSeconds;
     }

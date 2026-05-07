@@ -57,8 +57,6 @@ public class BoardView {
     public BoardView() {
         grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
-        // TODO: grid.setHgap(2); grid.setVgap(2)
-        // TODO: grid.getStyleClass().add("board-grid")
     }
 
     // ── Build ─────────────────────────────────────────────────

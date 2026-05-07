@@ -5,11 +5,13 @@ import com.minesweeper.model.GameState;
 import com.minesweeper.model.GameTimer;
 import com.minesweeper.model.ScoreRecord;
 import com.minesweeper.view.MainView;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.stage.Stage;
 
 public class GameController {
 
@@ -38,6 +40,7 @@ public class GameController {
         mainView.getBoardView().setOnRightClick(this::onRightClick);
         mainView.getBoardView().setOnChord(this::onChord);
         mainView.getHeaderView().setOnReset(this::reset);
+        mainView.getHeaderView().setOnPause(this::togglePause);
         mainView.getHeaderView().setOnDifficultyChange(this::setDifficulty);
     }
     // Trong GameController constructor
@@ -46,6 +49,7 @@ public class GameController {
             this.difficulty = difficulty;
             mainView.showGame(); // Hiện bàn cờ
             newGame();           // Gọi logic tạo board của bạn
+            mainView.getHeaderView().setDifficulty(difficulty);
         });
     }
     private void bindProperties() {
@@ -59,23 +63,27 @@ public class GameController {
     }
 
     // ── Game Management ───────────────────────────────────────
-
     public void newGame() {
-        System.out.println("Đang tạo game với độ khó: " + difficulty);
-        System.out.println("Board size: " + board.getRows() + "x" + board.getCols());
-        board = BoardFactory.createBoard(difficulty);   // Factory pattern
+        // 1. Tạo board model trước
+        board = BoardFactory.createBoard(difficulty);
+
+        // 2. Reset state
         gameState = GameState.IDLE;
         timer.reset();
 
+        // 3. Build UI dựa trên board mới
         mainView.getBoardView().build(board.getRows(), board.getCols());
+
+        // 4. Bind properties SAU KHI board và UI đã sẵn sàng
         bindProperties();
 
+        // 5. Cập nhật header
         mainView.getHeaderView().setResetEmoji("🙂");
         mainView.getHeaderView().showBestTime(record.getBestTime(difficulty));
         mainView.setDisabled(false);
     }
-
     public void reset() {
+        System.out.println("Game đã được reset");
         newGame();
     }
 
@@ -96,8 +104,25 @@ public class GameController {
     public void setDifficulty(Difficulty d) {
         this.difficulty = d;
         newGame();
+        Platform.runLater(() -> {
+            Stage stage = (Stage) mainView.getScene().getWindow();
+            if (stage != null) stage.sizeToScene();
+        });
     }
 
+    private void togglePause() {
+        if (gameState == GameState.PLAYING ) {
+            gameState = GameState.PAUSED;
+            timer.pause();
+            mainView.setDisabled(true);
+            mainView.getHeaderView().setPauseEmoji(true);
+        } else if (gameState == GameState.PAUSED) {
+            gameState = GameState.PLAYING;
+            timer.resume();
+            mainView.setDisabled(false);
+            mainView.getHeaderView().setPauseEmoji(false);
+        }
+    }
     // ── Board Interaction ─────────────────────────────────────
 
     public void onLeftClick(int row, int col) {
