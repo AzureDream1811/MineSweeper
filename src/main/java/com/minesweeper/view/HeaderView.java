@@ -1,4 +1,5 @@
 package com.minesweeper.view;
+
 import com.minesweeper.controller.Difficulty;
 import javafx.beans.property.IntegerProperty;
 import javafx.geometry.Insets;
@@ -17,10 +18,12 @@ public class HeaderView {
     private final Label timerLabel;
     private final Button resetButton;
     private final Button pauseButton;
+    private final Button highScoreButton;
     private final MenuButton difficultyMenu;
 
     private Consumer<Difficulty> onDifficultyChange;
     private Runnable onPause;
+    private Runnable onHighScore;
 
     public HeaderView() {
         mineCountLabel = new Label("000");
@@ -29,7 +32,7 @@ public class HeaderView {
         timerLabel = new Label("000");
         timerLabel.getStyleClass().add("header-counter");
 
-        resetButton = new Button("Reset");
+        resetButton = new Button("🙂");
         resetButton.setPrefSize(36, 36);
         resetButton.setMinSize(36, 36);
         resetButton.setMaxSize(36, 36);
@@ -44,17 +47,32 @@ public class HeaderView {
             if (onPause != null) onPause.run();
         });
 
+        // Nút High Score (UC_11)
+        highScoreButton = new Button("🏆");
+        highScoreButton.getStyleClass().add("highscore-button");
+        highScoreButton.setPrefSize(36, 36);
+        highScoreButton.setMinSize(36, 36);
+        highScoreButton.setMaxSize(36, 36);
+        highScoreButton.setTooltip(new Tooltip("Xem bảng kỷ lục"));
+        highScoreButton.setOnAction(e -> {
+            if (onHighScore != null) onHighScore.run();
+        });
+
         difficultyMenu = new MenuButton("Easy");
         difficultyMenu.getStyleClass().add("difficulty-menu");
         initDifficultyMenu();
+
         Region s1 = new Region();
         Region s2 = new Region();
         Region s3 = new Region();
         Region s4 = new Region();
+        Region s5 = new Region();
         HBox.setHgrow(s1, Priority.ALWAYS);
         HBox.setHgrow(s2, Priority.ALWAYS);
         HBox.setHgrow(s3, Priority.ALWAYS);
         HBox.setHgrow(s4, Priority.ALWAYS);
+        HBox.setHgrow(s5, Priority.ALWAYS);
+
         root = new HBox();
         root.setAlignment(Pos.CENTER_LEFT);
         root.setPadding(new Insets(8, 12, 8, 12));
@@ -68,6 +86,8 @@ public class HeaderView {
                 s3,
                 pauseButton,
                 s4,
+                highScoreButton,
+                s5,
                 difficultyMenu
         );
     }
@@ -107,18 +127,27 @@ public class HeaderView {
     public void setOnDifficultyChange(Consumer<Difficulty> handler) {
         this.onDifficultyChange = handler;
     }
+
+    /** Đăng ký handler khi người chơi nhấn nút High Score (UC_11) */
+    public void setOnHighScore(Runnable handler) {
+        this.onHighScore = handler;
+    }
+
     public void setDifficulty(Difficulty d) {
         String name = d.name().charAt(0) + d.name().substring(1).toLowerCase();
         difficultyMenu.setText(name);
     }
+
     // ── UI updates ────────────────────────────────────────────
 
     public void setResetEmoji(String emoji) {
         resetButton.setText(emoji);
     }
+
     public void setPauseEmoji(boolean isPaused) {
         pauseButton.setText(isPaused ? "▶" : "⏸");
     }
+
     public void showBestTime(int seconds) {
         String text = (seconds == Integer.MAX_VALUE) ? "Best: --" : "Best: " + seconds + "s";
         difficultyMenu.setTooltip(new Tooltip(text));
