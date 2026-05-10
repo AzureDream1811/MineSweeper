@@ -32,7 +32,7 @@ public class MainView {
 
         scene = new Scene(root);
         scene.getStylesheets().add(
-                getClass().getResource("/css/style.css").toExternalForm()
+            getClass().getResource("/styles.css").toExternalForm()
         );
     }
 
