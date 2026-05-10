@@ -16,8 +16,6 @@ public class  Main extends Application {
         BoardView  boardView  = new BoardView();
         MainView   mainView   = new MainView(headerView, boardView);
 
-
-
         // 2. Tao Controller
         GameController controller = new GameController(mainView);
 
