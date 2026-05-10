@@ -23,6 +23,7 @@ import java.util.Map;
  * record.update(Difficulty.EASY, 42);
  * </pre>
  */
+@SuppressWarnings("unused")
 public class ScoreRecord {
 
     // ── Singleton ─────────────────────────────────────────────

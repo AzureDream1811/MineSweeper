@@ -26,3 +26,8 @@ replay_pid*
 # java
 .idea
 target/
+javafx-jmods-21.0.11/
+installer/
+installer-input/
+.vscode/
+custom-runtime/

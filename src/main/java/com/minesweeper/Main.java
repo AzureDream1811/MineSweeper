@@ -5,7 +5,6 @@ import com.minesweeper.view.BoardView;
 import com.minesweeper.view.HeaderView;
 import com.minesweeper.view.MainView;
 import javafx.application.Application;
-import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 public class  Main extends Application {
