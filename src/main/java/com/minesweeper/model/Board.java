@@ -110,15 +110,17 @@ public class Board {
         }
     }
     public boolean revealCell(int row, int col) {
+        // Board.java - revealCell()
         if (firstClick) {
             placeMines(row, col);
             firstClick = false;
         }
         // Reset danh sách revealed cho lần thao tác này
-//        lastRevealedPositions.clear();
+        // lastRevealedPositions.clear();
 
         if (!inBounds(row, col)) return true;
 
+        // Board.java - revealCell()
         Cell cell = cells[row][col];
 
         if (cell.isRevealed() || cell.isFlagged()) return true;
@@ -134,6 +136,7 @@ public class Board {
         cell.reveal();
         lastRevealedPositions.add(new int[]{row, col});
 
+        // Board.java - revealCell()
         // Nếu ô trống (blank), mở rộng vùng bằng flood fill
         if (cell.isBlank()) {
             floodFill(row, col);
@@ -149,6 +152,7 @@ public class Board {
      * @param row hàng
      * @param col cột
      */
+    // Board.java
     private void floodFill(int row, int col) {
         if (!inBounds(row, col)) return;
 

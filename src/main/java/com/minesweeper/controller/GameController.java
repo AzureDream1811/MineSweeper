@@ -56,7 +56,9 @@ public class GameController {
         });
     }
 
-    /** Đăng ký callback khi người chơi chọn Restart hoặc Quay về Menu từ dialog kết quả */
+    /**
+     * Đăng ký callback khi người chơi chọn Restart hoặc Quay về Menu từ dialog kết quả
+     */
     private void registerResultHandlers() {
         mainView.setOnRestartRequested(this::newGame);
         mainView.setOnMenuRequested(() -> {
@@ -139,13 +141,16 @@ public class GameController {
         }
     }
 
-    /** Mở dialog High Score (UC_11). Không cần difficulty vừa lập kỷ lục (người dùng chủ động mở) */
+    /**
+     * Mở dialog High Score (UC_11). Không cần difficulty vừa lập kỷ lục (người dùng chủ động mở)
+     */
     private void showHighScore() {
         mainView.showHighScore(null);
     }
 
     // ── Board Interaction ─────────────────────────────────────
 
+    // GameController.java
     public void onLeftClick(int row, int col) {
         if (gameState == GameState.PAUSED
                 || gameState == GameState.WIN
@@ -158,6 +163,7 @@ public class GameController {
         }
 
         boolean safe = board.revealCell(row, col);
+        // GameController.java
         // Cập nhật tất cả ô vừa được reveal (bao gồm flood-fill)
         updateChangedCells();
         mainView.getBoardView().updateCell(row, col, board.getCell(row, col));
@@ -179,8 +185,10 @@ public class GameController {
     public void onChord(int row, int col) {
         if (gameState != GameState.PLAYING) return;
         board.getLastRevealedPositions().clear();
+        // GameController.java
         boolean safe = board.chord(row, col);
         updateChangedCells();
+        // GameController.java
         if (!safe) handleLose(row, col);
         else if (board.checkWin()) handleWin();
     }
