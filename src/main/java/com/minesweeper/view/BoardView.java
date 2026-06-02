@@ -24,10 +24,14 @@ public class BoardView {
 
     // ── Fields ────────────────────────────────────────────────
 
-    /** GridPane chứa toàn bộ CellView */
+    /**
+     * GridPane chứa toàn bộ CellView
+     */
     private final GridPane grid;
 
-    /** Mảng 2D các CellView — ánh xạ 1-1 với Board.cells[][] */
+    /**
+     * Mảng 2D các CellView — ánh xạ 1-1 với Board.cells[][]
+     */
     private CellView[][] cellViews;
 
     /**
@@ -104,13 +108,23 @@ public class BoardView {
     private void attachMouseHandlers(CellView cv) {
         cv.setOnMouseClicked(e -> {
             MouseButton button = e.getButton();
+
+            // Lấy vị trí ô được click để truyền sang Controller
             int row = cv.getRow();
             int col = cv.getCol();
+
             if (button == MouseButton.PRIMARY && e.getClickCount() == 2) {
+                // Không thuộc UC-09, đây là UC-03 Chording
                 if (onChord != null) onChord.accept(row, col);
+
             } else if (button == MouseButton.PRIMARY) {
+                // UC-09 - 9.1.1:
+                // Người chơi nhấp chuột trái vào một ô chưa được mở trên bàn chơi.
+                // BoardView không xử lý logic game, chỉ chuyển tọa độ ô sang GameController.
                 if (onLeftClick != null) onLeftClick.accept(row, col);
+
             } else if (button == MouseButton.SECONDARY) {
+                // Không thuộc UC-09, đây là chức năng đặt/hủy cờ.
                 if (onRightClick != null) onRightClick.accept(row, col);
             }
         });
@@ -127,6 +141,8 @@ public class BoardView {
      * @param cell trạng thái model mới của ô
      */
     public void updateCell(int row, int col, Cell cell) {
+        // UC-09 - 9.1.9:
+        // Nhận trạng thái mới của Cell từ Model và render lại ô tương ứng trên giao diện.
         cellViews[row][col].render(cell);
     }
 

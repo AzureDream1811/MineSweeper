@@ -152,28 +152,66 @@ public class GameController {
 
     // GameController.java
     public void onLeftClick(int row, int col) {
+        // UC-09 - 9.1.2:
+        // Hệ thống kiểm tra trạng thái hiện tại của ván chơi.
+        //
+        // UC-09 - 9.4.1:
+        // Nếu ván chơi đang tạm dừng hoặc đã kết thúc,
+        // hệ thống không thực hiện thao tác mở ô.
         if (gameState == GameState.PAUSED
                 || gameState == GameState.WIN
-                || gameState == GameState.LOSE) return;
+                || gameState == GameState.LOSE) {
+            return;
+        }
+
+        // Chuẩn bị danh sách các ô vừa được mở trong lần thao tác này.
+        // Danh sách này dùng cho bước 9.1.9 để cập nhật giao diện.
         board.getLastRevealedPositions().clear();
 
+        // UC-09 - 9.1.3:
+        // Nếu ván chơi đang ở trạng thái IDLE,
+        // hệ thống chuyển ván chơi sang PLAYING và bắt đầu bộ đếm thời gian.
         if (gameState == GameState.IDLE) {
             timer.start();
             gameState = GameState.PLAYING;
         }
 
+        // UC-09 - 9.1.4, 9.1.5, 9.1.6, 9.1.8:
+        // Gọi Board xử lý logic mở ô:
+        // - nếu là lượt đầu thì đặt mìn
+        // - kiểm tra nội dung ô
+        // - mở ô an toàn
+        // - tự động mở rộng nếu là ô trống
         boolean safe = board.revealCell(row, col);
-        // GameController.java
-        // Cập nhật tất cả ô vừa được reveal (bao gồm flood-fill)
+
+        // UC-09 - 9.1.9:
+        // Hệ thống cập nhật giao diện bàn chơi.
+        // Cập nhật các ô vừa được reveal, bao gồm cả các ô do flood-fill mở ra.
         updateChangedCells();
-        mainView.getBoardView().updateCell(row, col, board.getCell(row, col));
-        // Cập nhật tất cả ô vừa được reveal (bao gồm flood-fill)
+
+        // Cập nhật lại các ô trong danh sách lastRevealedPositions.
         for (int[] pos : board.getLastRevealedPositions()) {
-            mainView.getBoardView().updateCell(pos[0], pos[1], board.getCell(pos[0], pos[1]));
+            mainView.getBoardView().updateCell(
+                    pos[0],
+                    pos[1],
+                    board.getCell(pos[0], pos[1])
+            );
         }
 
-        if (!safe) handleLose(row, col);
-        else if (board.checkWin()) handleWin();
+        if (!safe) {
+            // UC-09 - 9.2.2:
+            // Hệ thống chuyển sang UC-17 – Trigger Explosion.
+            handleLose(row, col);
+
+        } else if (board.checkWin()) {
+            // UC-09 - 9.1.10:
+            // Nếu tất cả các ô không chứa mìn đã được mở,
+            // hệ thống chuyển sang xử lý thắng.
+            handleWin();
+        }
+
+        // UC-09 - 9.1.11:
+        // Use case kết thúc.
     }
 
     public void onRightClick(int row, int col) {
@@ -246,8 +284,17 @@ public class GameController {
     }
 
     private void updateChangedCells() {
+        // UC-09 - 9.1.9:
+        // Hệ thống cập nhật giao diện bàn chơi.
+        //
+        // Chỉ cập nhật những ô vừa được mở trong lần thao tác hiện tại,
+        // thay vì render lại toàn bộ bàn cờ.
         for (int[] pos : board.getLastRevealedPositions()) {
-            mainView.getBoardView().updateCell(pos[0], pos[1], board.getCell(pos[0], pos[1]));
+            mainView.getBoardView().updateCell(
+                    pos[0],
+                    pos[1],
+                    board.getCell(pos[0], pos[1])
+            );
         }
     }
 }
