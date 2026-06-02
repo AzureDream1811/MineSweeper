@@ -150,7 +150,9 @@ public class GameController {
 
     // ── Board Interaction ─────────────────────────────────────
 
-    // GameController.java
+    /**
+     * UC_10/UC_16 — Start Timer: khi click mở ô đầu tiên, chuyển IDLE -> PLAYING và start timer.
+     */
     public void onLeftClick(int row, int col) {
         // UC-09 - 9.1.2:
         // Hệ thống kiểm tra trạng thái hiện tại của ván chơi.

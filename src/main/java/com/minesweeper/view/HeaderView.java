@@ -106,6 +106,9 @@ public class HeaderView {
 
     // ── Binding ───────────────────────────────────────────────
 
+    /**
+     * UC_10/UC_16 — View Timer: bind số giây để Header tự cập nhật mỗi 1s.
+     */
     public void bindTimer(IntegerProperty secondsProp) {
         timerLabel.textProperty().bind(secondsProp.asString("%03d"));
     }
@@ -128,7 +131,9 @@ public class HeaderView {
         this.onDifficultyChange = handler;
     }
 
-    /** Đăng ký handler khi người chơi nhấn nút High Score (UC_11) */
+    /**
+     * UC_11 — View High Score: đăng ký handler cho nút High Score trên Header.
+     */
     public void setOnHighScore(Runnable handler) {
         this.onHighScore = handler;
     }
