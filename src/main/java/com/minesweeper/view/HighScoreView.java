@@ -14,7 +14,7 @@ import javafx.stage.StageStyle;
 
 /**
  * Dialog hiển thị bảng High Score (Best Time) theo từng cấp độ.
- * UC_11 — View High Score
+ * UC_11 — View High Score: hiển thị Best Time theo từng mức độ.
  * Thiết kế hài hòa với dark theme hiện tại của game.
  */
 public class HighScoreView {
@@ -27,6 +27,7 @@ public class HighScoreView {
 
     /**
      * Mở dialog High Score modal trên owner window.
+     * UC_11 — View High Score: hiển thị Best Time theo từng mức độ.
      * @param ownerStage cửa sổ cha (để căn giữa)
      * @param newRecordDifficulty nếu vừa lập kỷ lục mới, truyền difficulty đó để highlight; null nếu không
      */

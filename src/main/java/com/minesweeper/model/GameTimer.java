@@ -49,6 +49,10 @@ public class GameTimer {
         timeline.setCycleCount(Timeline.INDEFINITE);
     }
 
+    /**
+     * Bắt đầu chạy timer (UC_10/UC_16 — Start Timer).
+     * Chỉ được gọi khi người chơi mở ô đầu tiên.
+     */
     public void start() {
         timeline.play();
     }
@@ -61,6 +65,9 @@ public class GameTimer {
         timeline.play();
     }
 
+    /**
+     * Dừng và đưa timer về 0 (trạng thái IDLE).
+     */
     public void reset() {
         timeline.stop();
         elapsedSeconds.set(0);
