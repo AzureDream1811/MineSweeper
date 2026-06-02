@@ -155,15 +155,27 @@ public class BoardView {
      * @param explodedCol cột của ô mìn vừa nổ (-1 nếu không có)
      */
     public void revealAllMines(Board board, int explodedRow, int explodedCol) {
+        // UC-17 - 17.1.5:
+        // Hệ thống hiển thị các ô chứa mìn trên bàn chơi.
+        //
+        // View duyệt qua toàn bộ CellView, lấy Cell tương ứng từ Board
+        // và render các ô có chứa mìn.
         for (int r = 0; r < cellViews.length; r++) {
             for (int c = 0; c < cellViews[0].length; c++) {
                 Cell cell = board.getCell(r, c);
+
                 if (cell.isMine()) {
                     boolean exploded = (r == explodedRow && c == explodedCol);
-                    // Gọi render hoặc showMine trực tiếp dựa trên dữ liệu thật từ Model
+
+                    // Render ô mìn bình thường.
                     cellViews[r][c].render(cell);
+
+                    // UC-17 - 17.1.6:
+                    // Hệ thống làm nổi bật ô mìn mà người chơi vừa mở.
+                    //
+                    // Nếu đây là ô gây nổ, ép hiển thị mine với trạng thái exploded.
                     if (exploded) {
-                        cellViews[r][c].showMine(true); // Ép ô nổ hiện màu đỏ
+                        cellViews[r][c].showMine(true);
                     }
                 }
             }

@@ -265,22 +265,37 @@ public class GameController {
     }
 
     private void handleLose(int explodedRow, int explodedCol) {
-        // UC_14 step 1: dừng đồng hồ
+        // UC-17 - 17.1.3:
+        // Hệ thống chuyển ván chơi sang trạng thái thua.
+        gameState = GameState.LOSE;
+
+        // UC-17 - 17.1.4:
+        // Hệ thống dừng bộ đếm thời gian.
         timer.pause();
         int elapsed = timer.getElapsedSeconds();
 
+        // UC-17 - 17.1.5:
+        // Hệ thống hiển thị các ô chứa mìn trên bàn chơi.
         board.revealAllMines();
-        gameState = GameState.LOSE;
+
+        // UC-17 - 17.1.5 + 17.1.6:
+        // BoardView hiển thị toàn bộ mìn và làm nổi bật ô mìn mà người chơi vừa mở.
         mainView.getBoardView().revealAllMines(board, explodedRow, explodedCol);
 
-        // UC_14 step 2: đổi emoji → 😵
-        mainView.getHeaderView().setResetEmoji("😵");
-
-        // UC_14 step 3: khóa board
+        // UC-17 - 17.1.7:
+        // Hệ thống khóa bàn chơi, không cho phép người chơi tiếp tục thao tác.
         mainView.setDisabled(true);
 
-        // UC_14 step 5: hiện dialog kết quả thua
+        // UC-17 - 17.1.8:
+        // Hệ thống cập nhật biểu tượng trạng thái thua trên giao diện.
+        mainView.getHeaderView().setResetEmoji("😵");
+
+        // UC-17 - 17.1.9:
+        // Hệ thống hiển thị kết quả thua.
         mainView.showResult(false, elapsed, false);
+
+        // UC-17 - 17.1.10:
+        // Use case kết thúc.
     }
 
     private void updateChangedCells() {
