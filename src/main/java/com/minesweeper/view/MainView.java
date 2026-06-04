@@ -2,6 +2,7 @@ package com.minesweeper.view;
 
 import com.minesweeper.controller.Difficulty;
 import com.minesweeper.model.ScoreRecord;
+import com.minesweeper.view.PvPBoardView;
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -25,6 +26,8 @@ public class MainView {
     // Callback sau khi dialog kết quả đóng lại
     private Runnable onRestartRequested;
     private Runnable onMenuRequested;
+    // [UC5.4.4] Callback khi người chơi nhấn nút "Chơi PvP Cục Bộ"
+    private Runnable onPvPLocalRequested;
 
     public MainView(HeaderView headerView, BoardView boardView, ScoreRecord record) {
         this.headerView = headerView;
@@ -73,6 +76,30 @@ public class MainView {
         highScoreView.show(ownerStage, newRecordDifficulty);
     }
 
+    /**
+     * [UC5.4.4] Hiển thị màn hình PvP chia đôi.
+     * Ẩn menu, ẩn gameLayer đơn, thêm pvpView vào root.
+     */
+    public void showPvP(PvPBoardView pvpView) {
+        menuView.getRoot().setVisible(false); // Ẩn menu chính (UC5.4.4)
+        gameLayer.setVisible(false);          // Ẩn chế độ đơn (UC5.4.4)
+        if (!root.getChildren().contains(pvpView.getRoot()))
+            root.getChildren().add(pvpView.getRoot()); // Thêm view PvP vào StackPane
+        pvpView.getRoot().setVisible(true);
+        Platform.runLater(() -> {
+            Stage stage = (Stage) scene.getWindow();
+            if (stage != null) stage.sizeToScene();
+        });
+    }
+
+    /**
+     * Xoá màn hình PvP, quay về menu.
+     */
+    public void hidePvP(PvPBoardView pvpView) {
+        root.getChildren().remove(pvpView.getRoot()); // Gỡ view PvP
+        showMenu();
+    }
+
     public void showGame() {
         menuView.getRoot().setVisible(false);
         gameLayer.setVisible(true);
@@ -101,6 +128,12 @@ public class MainView {
 
     public void setOnMenuRequested(Runnable handler) {
         this.onMenuRequested = handler;
+    }
+
+    // [UC5.4.1] Setter để GameController đăng ký xử lý yêu cầu PvP
+    public void setOnPvPLocalRequested(Runnable handler) {
+        this.onPvPLocalRequested = handler;
+        menuView.setOnPvPLocalRequested(handler); // Chuyển tiếp xuống MenuView
     }
 
     // ── Getters ───────────────────────────────────────────────

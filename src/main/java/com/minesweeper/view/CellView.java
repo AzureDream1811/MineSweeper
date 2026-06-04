@@ -4,17 +4,28 @@ import javafx.scene.control.Button;
 
 public class CellView extends Button {
 
-    public static final int CELL_SIZE = 30;
+    public static final int DEFAULT_CELL_SIZE = 30;
 
     private final int row, col;
+    private final int size;
 
-    public CellView(int row, int col) {
+    public CellView(int row, int col, int size) {
         this.row = row;
         this.col = col;
-        setPrefSize(CELL_SIZE, CELL_SIZE);
-        setMinSize(CELL_SIZE, CELL_SIZE);
-        setMaxSize(CELL_SIZE, CELL_SIZE);
+        this.size = size;
+        setPrefSize(size, size);
+        setMinSize(size, size);
+        setMaxSize(size, size);
         getStyleClass().add("cell-hidden");
+        
+        // Điều chỉnh cỡ chữ nếu ô bị thu nhỏ
+        if (size < 30) {
+            setStyle("-fx-font-size: " + (size * 0.5) + "px;");
+        }
+    }
+
+    public CellView(int row, int col) {
+        this(row, col, DEFAULT_CELL_SIZE);
     }
 
     public void render(Cell cell) {

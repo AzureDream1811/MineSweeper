@@ -78,10 +78,15 @@ public class BoardView {
         // 2. Khởi tạo mảng lưu trữ
         cellViews = new CellView[rows][cols];
 
+        // Tính toán kích thước ô tuỳ theo độ khó
+        int cellSize = CellView.DEFAULT_CELL_SIZE;
+        if (rows >= 24 || cols >= 24) cellSize = 18;
+        else if (rows >= 16 || cols >= 16) cellSize = 24;
+
         // 3. Vòng lặp tạo từng ô
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
-                CellView cv = new CellView(row, col); // Đảm bảo CellView có constructor nhận r, c
+                CellView cv = new CellView(row, col, cellSize); // Truyền cellSize
 
                 // Gán sự kiện chuột
                 attachMouseHandlers(cv);
