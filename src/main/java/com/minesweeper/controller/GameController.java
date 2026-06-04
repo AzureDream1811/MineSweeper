@@ -5,6 +5,7 @@ import com.minesweeper.model.GameState;
 import com.minesweeper.model.GameTimer;
 import com.minesweeper.model.ScoreRecord;
 import com.minesweeper.view.MainView;
+import com.minesweeper.view.PvPSetupDialog;
 import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.IntegerProperty;
@@ -32,6 +33,7 @@ public class GameController {
         registerViewHandlers();
         registerMenuHandlers();
         registerResultHandlers();
+        registerPvPHandler(); // [UC5.4.1] Đăng ký handler cho nút PvP Cục Bộ
     }
 
     // ── Setup ─────────────────────────────────────────────────
@@ -53,6 +55,30 @@ public class GameController {
             mainView.showGame();
             newGame();
             mainView.getHeaderView().setDifficulty(difficulty);
+        });
+    }
+
+    /**
+     * [UC5.4.1] Đăng ký handler khi người chơi nhấn "Chơi PvP Cục Bộ".
+     * Mở dialog cấu hình (UC5.4.2), sau đó khởi tạo trận PvP (UC5.4.4–5.4.7).
+     */
+    private void registerPvPHandler() {
+        mainView.setOnPvPLocalRequested(() -> {
+            // [UC5.4.2] Hiển thị dialog thiết lập trận đấu
+            Stage ownerStage = (Stage) mainView.getScene().getWindow();
+            PvPSetupDialog.Config config = PvPSetupDialog.show(ownerStage);
+
+            // Người chơi đã huỷ dialog → dừng lại, giữ nguyên menu
+            if (config == null) return;
+
+            // [UC5.4.4] Tạo PvPGameController và lấy view
+            PvPGameController pvpController = new PvPGameController(config);
+
+            // [UC5.4.4] Hiển thị GameView PvP chia đôi, ẩn menu và chế độ đơn
+            mainView.showPvP(pvpController.getPvPBoardView());
+
+            // [UC5.4.6] Đăng ký Key Listeners sau khi view đã hiển thị
+            pvpController.registerKeyListeners(mainView.getScene());
         });
     }
 
@@ -194,7 +220,12 @@ public class GameController {
     }
 
     public void onKeyPressed(KeyEvent e) {
-        if (e.getCode() == KeyCode.F2) reset();
+        if (e.getCode() == KeyCode.F2) {
+            reset();
+        } else if (e.getCode() == KeyCode.F11) {
+            Stage stage = (Stage) mainView.getScene().getWindow();
+            if (stage != null) stage.setFullScreen(!stage.isFullScreen());
+        }
     }
 
     // ── Game Status ───────────────────────────────────────────
