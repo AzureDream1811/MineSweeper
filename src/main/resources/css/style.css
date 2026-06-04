@@ -53,6 +53,73 @@ body {
     animation: cellReveal 0.3s ease both;
 }
 
+/*UC 9 refactors */
+/*Start*/
+.cell-hidden {
+    -fx-background-color: #c0c0c0;
+    -fx-border-color: #ffffff #7b7b7b #7b7b7b #ffffff;
+    -fx-border-width: 3px;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-cursor: hand;
+}
+
+.cell-hidden:hover {
+    -fx-background-color: #d4d4d4;
+}
+
+.cell-revealed {
+    -fx-background-color: #bdbdbd;
+    -fx-border-color: #7b7b7b;
+    -fx-border-width: 1px;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-alignment: center;
+}
+
+.cell-flagged {
+    -fx-background-color: #c0c0c0;
+    -fx-border-color: #ffffff #7b7b7b #7b7b7b #ffffff;
+    -fx-border-width: 3px;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-alignment: center;
+}
+
+.cell-mine {
+    -fx-background-color: #bdbdbd;
+    -fx-border-color: #7b7b7b;
+    -fx-border-width: 1px;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-alignment: center;
+}
+
+.cell-exploded {
+    -fx-background-color: #ff4444;
+    -fx-border-color: #7b7b7b;
+    -fx-border-width: 1px;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+    -fx-alignment: center;
+}
+
+/* ── Number colors  ── */
+.cell-num-1 { -fx-text-fill: #0000ff; }
+.cell-num-2 { -fx-text-fill: #007b00; }
+.cell-num-3 { -fx-text-fill: #ff0000; }
+.cell-num-4 { -fx-text-fill: #00007b; }
+.cell-num-5 { -fx-text-fill: #7b0000; }
+.cell-num-6 { -fx-text-fill: #007b7b; }
+.cell-num-7 { -fx-text-fill: #000000; }
+.cell-num-8 { -fx-text-fill: #7b7b7b; }
+/*End*/
+
 @keyframes cellReveal {
     from { opacity: 0; transform: scale(0.7); }
     to   { opacity: 1; transform: scale(1); }
