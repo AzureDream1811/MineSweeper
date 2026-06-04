@@ -18,10 +18,10 @@ public class CellView extends Button {
         setMaxSize(size, size);
         getStyleClass().add("cell-hidden");
         
-        // Điều chỉnh cỡ chữ nếu ô bị thu nhỏ
-        if (size < 30) {
-            setStyle("-fx-font-size: " + (size * 0.5) + "px;");
-        }
+        // Điều chỉnh cỡ chữ dựa trên kích thước ô bằng Java API để tránh lỗi CSS hover
+        setFont(javafx.scene.text.Font.font("Share Tech Mono", javafx.scene.text.FontWeight.BOLD, size * 0.7));
+        setPadding(javafx.geometry.Insets.EMPTY);
+        setAlignment(javafx.geometry.Pos.CENTER);
     }
 
     public CellView(int row, int col) {

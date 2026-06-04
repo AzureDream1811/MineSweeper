@@ -77,19 +77,16 @@ body {
     -fx-background-radius: 0;
     -fx-border-radius: 0;
     -fx-alignment: center;
-    -fx-font-family: 'Share Tech Mono', monospace;
-    -fx-font-size: 18px;
-    -fx-font-weight: bold;
 }
 
 .cell-flagged {
+    -fx-background-color: #c0c0c0;
     -fx-border-color: #ffffff #7b7b7b #7b7b7b #ffffff;
     -fx-border-width: 3px;
     -fx-background-insets: 0;
     -fx-background-radius: 0;
     -fx-border-radius: 0;
     -fx-alignment: center;
-    -fx-font-size: 16px;
 }
 
 .cell-mine {
@@ -100,7 +97,6 @@ body {
     -fx-background-radius: 0;
     -fx-border-radius: 0;
     -fx-alignment: center;
-    -fx-font-size: 16px;
 }
 
 .cell-exploded {
@@ -111,7 +107,6 @@ body {
     -fx-background-radius: 0;
     -fx-border-radius: 0;
     -fx-alignment: center;
-    -fx-font-size: 16px;
 }
 
 /* ── Number colors  ── */
