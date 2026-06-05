@@ -3,6 +3,7 @@ package com.minesweeper.controller;
 import com.minesweeper.model.Board;
 import com.minesweeper.model.GameState;
 import com.minesweeper.model.GameTimer;
+import com.minesweeper.model.PvPRequestType;
 import com.minesweeper.view.PvPBoardView;
 import com.minesweeper.view.PvPSetupDialog;
 
@@ -96,17 +97,19 @@ public class PvPGameController {
         pvpView.buildBoards(rows, cols);
 
         // Bind đồng hồ lên nhãn hiển thị
-        pvpView.bindTimerP1(timerP1.elapsedSecondsProperty());
-        pvpView.bindTimerP2(timerP2.elapsedSecondsProperty());
+        pvpView.getHeaderView().bindTimerP1(timerP1.elapsedSecondsProperty());
+        pvpView.getHeaderView().bindTimerP2(timerP2.elapsedSecondsProperty());
+
+        pvpView.getHeaderView().setOnReset(() -> requestAction(1, PvPRequestType.RESET));
 
         // Bind số mìn còn lại (totalMines - flagCount) cho mỗi bên
         IntegerProperty remainP1 = new SimpleIntegerProperty();
         remainP1.bind(Bindings.subtract(boardP1.getTotalMines(), boardP1.flagCountProperty()));
-        pvpView.bindMinesP1(remainP1);
+        pvpView.getHeaderView().bindMinesP1(remainP1);
 
         IntegerProperty remainP2 = new SimpleIntegerProperty();
         remainP2.bind(Bindings.subtract(boardP2.getTotalMines(), boardP2.flagCountProperty()));
-        pvpView.bindMinesP2(remainP2);
+        pvpView.getHeaderView().bindMinesP2(remainP2);
 
         // [UC5.4.7] Kích hoạt cả hai đồng hồ đồng thời ngay khi trận bắt đầu
         timerP1.start();
@@ -152,6 +155,17 @@ public class PvPGameController {
      */
     private void handleKeyPressed(KeyEvent e) {
         KeyCode key = e.getCode();
+        if (waitingConfirmation) {
+            switch (key) {
+                case C -> confirmRequest(1);
+                case X -> rejectRequest(1);
+                case O -> confirmRequest(2);
+                case N -> rejectRequest(2);
+                default -> {}
+            }
+            e.consume();
+            return;
+        }
         boolean handled = true;
 
         // ── Player 1 Controls (WASD / Space / F) ────────────
