@@ -13,17 +13,12 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-
 /**
  * Controller điều phối toàn bộ chế độ PvP cục bộ.
  *
  * Đảm nhận các bước:
  *   [UC5.4.4] Khởi tạo GameView PvP chia đôi màn hình
- *   [UC5.4.5] Sinh mine layout ngẫu nhiên dùng chung cho hai board
+ *   Khởi tạo hai Board độc lập với bố trí mìn riêng biệt, safe-first-click cho mỗi người
  *   [UC5.4.6] Đăng ký Key Listeners điều khiển cursor P1 (WASD/Space/F) và P2 (Arrow/Enter/P)
  *   [UC5.4.7] Đặt trạng thái PVP_SPLIT_START, kích hoạt hai đồng hồ
  */
@@ -68,8 +63,9 @@ public class PvPGameController {
     // ── Khởi tạo trận ──────────────────────────────────────
 
     /**
-     * [UC5.4.5] Sinh mine layout ngẫu nhiên và khởi tạo hai Board độc lập
-     * dùng chung layout đó để đảm bảo công bằng tuyệt đối.
+     * Khởi tạo hai Board độc lập với bố trí mìn riêng biệt cho mỗi người chơi.
+     * Mìn sẽ được đặt ngẫu nhiên khi người chơi click ô đầu tiên (safe-first-click),
+     * giống chế độ chơi cơ bản — đảm bảo ô đầu tiên không bao giờ là mìn.
      * [UC5.4.7] Đặt trạng thái PVP_SPLIT_START, kích hoạt hai đồng hồ.
      */
     public void initMatch() {
@@ -77,12 +73,11 @@ public class PvPGameController {
         int cols  = difficulty.getCols();
         int mines = difficulty.getMines();
 
-        // [UC5.4.5] Sinh mine layout ngẫu nhiên chung cho cả hai board
-        boolean[][] sharedLayout = generateMineLayout(rows, cols, mines);
-
-        // [UC5.4.5] Tạo hai Board độc lập nhưng dùng cùng layout mìn
-        boardP1 = new Board(rows, cols, mines, sharedLayout);
-        boardP2 = new Board(rows, cols, mines, sharedLayout);
+        // Tạo hai Board hoàn toàn độc lập, mỗi người có bố trí mìn riêng.
+        // Mìn chưa được đặt — sẽ được đặt ngẫu nhiên khi mỗi người click lần đầu
+        // (safe-first-click: ô đầu tiên và 8 ô xung quanh đảm bảo không có mìn).
+        boardP1 = new Board(rows, cols, mines);
+        boardP2 = new Board(rows, cols, mines);
 
         // Reset trạng thái mỗi người chơi về PVP_SPLIT_START
         stateP1 = GameState.PVP_SPLIT_START; // [UC5.4.7]
@@ -111,27 +106,6 @@ public class PvPGameController {
         // [UC5.4.7] Kích hoạt cả hai đồng hồ đồng thời ngay khi trận bắt đầu
         timerP1.start();
         timerP2.start();
-    }
-
-    /**
-     * [UC5.4.5] Sinh ngẫu nhiên mine layout dạng boolean[][].
-     * Không áp dụng safe-first-click (fair layout trước khi chơi).
-     */
-    private boolean[][] generateMineLayout(int rows, int cols, int totalMines) {
-        // Tạo danh sách tất cả ô, xáo trộn, lấy `totalMines` ô đầu
-        List<int[]> allCells = new ArrayList<>(rows * cols);
-        for (int r = 0; r < rows; r++)
-            for (int c = 0; c < cols; c++)
-                allCells.add(new int[]{ r, c });
-
-        Collections.shuffle(allCells, new Random()); // Xáo trộn ngẫu nhiên
-
-        boolean[][] layout = new boolean[rows][cols];
-        for (int i = 0; i < totalMines; i++) {
-            int[] pos = allCells.get(i);
-            layout[pos[0]][pos[1]] = true; // Đánh dấu ô có mìn
-        }
-        return layout;
     }
 
     // ── Key Listener ────────────────────────────────────────
