@@ -108,6 +108,12 @@ public class GameController {
             // [UC5.4.4] Tạo PvPGameController và lấy view
             PvPGameController pvpController = new PvPGameController(config);
 
+            // Xử lý callback khi người chơi ấn "QUAY LẠI MENU" ở Dialog kết quả
+            pvpController.setOnMatchEnd(() -> {
+                mainView.hidePvP(pvpController.getPvPBoardView());
+                gameState = GameState.IDLE;
+            });
+
             // [UC5.4.4] Hiển thị GameView PvP chia đôi, ẩn menu và chế độ đơn
             mainView.showPvP(pvpController.getPvPBoardView());
 
