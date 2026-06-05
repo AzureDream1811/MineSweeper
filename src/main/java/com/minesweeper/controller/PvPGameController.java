@@ -195,7 +195,7 @@ public class PvPGameController {
 
     /** [UC5.4.6] Player 1 nhấn Space → mở ô tại cursor */
     private void revealP1() {
-        if (stateP1 != GameState.PVP_SPLIT_START) return; // Không nhận thêm input khi đã kết thúc
+        if (stateP1 != GameState.PVP_SPLIT_START && stateP1 != GameState.PLAYING) return; // Không nhận thêm input khi đã kết thúc
 
         int[] cursor = pvpView.getCursorP1();
         int row = cursor[0], col = cursor[1];
@@ -208,16 +208,13 @@ public class PvPGameController {
             pvpView.updateCellP1(pos[0], pos[1], boardP1.getCell(pos[0], pos[1]));
         pvpView.updateCellP1(row, col, boardP1.getCell(row, col));
 
-        if (!safe) {
-            handleLoseP1(row, col); // Người chơi 1 thua
-        } else if (boardP1.checkWin()) {
-            handleWinP1(); // Người chơi 1 thắng
-        }
+        // [13.1.1] Hệ thống tiếp nhận trạng thái sau khi một người chơi vừa thực hiện mở ô (revealCell).
+        checkMatchResult(true, safe, row, col);
     }
 
     /** [UC5.4.6] Player 2 nhấn Enter → mở ô tại cursor */
     private void revealP2() {
-        if (stateP2 != GameState.PVP_SPLIT_START) return;
+        if (stateP2 != GameState.PVP_SPLIT_START && stateP2 != GameState.PLAYING) return;
 
         int[] cursor = pvpView.getCursorP2();
         int row = cursor[0], col = cursor[1];
@@ -229,11 +226,8 @@ public class PvPGameController {
             pvpView.updateCellP2(pos[0], pos[1], boardP2.getCell(pos[0], pos[1]));
         pvpView.updateCellP2(row, col, boardP2.getCell(row, col));
 
-        if (!safe) {
-            handleLoseP2(row, col);
-        } else if (boardP2.checkWin()) {
-            handleWinP2();
-        }
+        // [13.1.1] Hệ thống tiếp nhận trạng thái sau khi một người chơi vừa thực hiện mở ô (revealCell).
+        checkMatchResult(false, safe, row, col);
     }
 
     // ── Cắm cờ ──────────────────────────────────────────────
@@ -256,32 +250,85 @@ public class PvPGameController {
 
     // ── Xử lý kết quả trận ─────────────────────────────────
 
-    /** Player 1 thắng */
-    private void handleWinP1() {
-        stateP1 = GameState.WIN;
-        timerP1.pause(); // Dừng đồng hồ P1
+    /**
+     * [UC-13] Check Game Result PvP (Kiểm tra, đối chiếu song song kết quả trận đấu giữa 2 người chơi).
+     * @param isP1   Thao tác vừa rồi là của Player 1 (true) hay Player 2 (false)
+     * @param safe   Trạng thái an toàn sau khi reveal
+     * @param row    Hàng mở cuối cùng (dùng khi nổ mìn)
+     * @param col    Cột mở cuối cùng (dùng khi nổ mìn)
+     */
+    private void checkMatchResult(boolean isP1, boolean safe, int row, int col) {
+        if (stateP1 != GameState.LOSE && stateP1 != GameState.WIN) stateP1 = GameState.PLAYING;
+        if (stateP2 != GameState.LOSE && stateP2 != GameState.WIN) stateP2 = GameState.PLAYING;
+
+        if (isP1) {
+            if (!safe) {
+                // 13.1.3: Nếu người vừa thao tác kích nổ mìn, hệ thống chuyển trạng thái sang LOSE nhưng không dừng game ngay; tiến hành đối chiếu.
+                stateP1 = GameState.LOSE;
+                boardP1.revealAllMines();
+                pvpView.revealAllMinesP1(boardP1, row, col);
+
+                if (stateP2 == GameState.PVP_SPLIT_START || stateP2 == GameState.PLAYING) {
+                    // 13.1.4: Nếu đối thủ vẫn đang trong trạng thái PLAYING, hệ thống xác định đối thủ là người chiến thắng do sống sót lâu hơn.
+                    stateP2 = GameState.WIN;
+                    finishMatch();
+                } else if (stateP2 == GameState.LOSE) {
+                    // 13.2.1: Alternative Flow - Nếu cả hai người chơi cùng kích nổ mìn, hệ thống ghi nhận kết quả là Hòa (DRAW).
+                    finishMatch();
+                }
+            } else if (boardP1.checkWin()) {
+                // 13.1.2: Hệ thống kiểm tra điều kiện dọn sạch mìn. Nếu true, hệ thống lập tức xác định người này thắng tuyệt đối (Win).
+                stateP1 = GameState.WIN;
+                stateP2 = GameState.LOSE;
+                finishMatch();
+            }
+        } else {
+            if (!safe) {
+                // 13.1.3: Nếu người vừa thao tác kích nổ mìn...
+                stateP2 = GameState.LOSE;
+                boardP2.revealAllMines();
+                pvpView.revealAllMinesP2(boardP2, row, col);
+
+                if (stateP1 == GameState.PVP_SPLIT_START || stateP1 == GameState.PLAYING) {
+                    // 13.1.4: Xác định đối thủ là người chiến thắng do sống sót lâu hơn.
+                    stateP1 = GameState.WIN;
+                    finishMatch();
+                } else if (stateP1 == GameState.LOSE) {
+                    // 13.2.1: Alternative Flow - Hòa.
+                    finishMatch();
+                }
+            } else if (boardP2.checkWin()) {
+                // 13.1.2: Hệ thống lập tức xác định người này thắng tuyệt đối do hoàn thành trước.
+                stateP2 = GameState.WIN;
+                stateP1 = GameState.LOSE;
+                finishMatch();
+            }
+        }
     }
 
-    /** Player 2 thắng */
-    private void handleWinP2() {
-        stateP2 = GameState.WIN;
+    private void finishMatch() {
+        // 13.1.5: Hệ thống đóng băng cả 2 bàn cờ, dừng toàn bộ timer và chuyển giao kết quả sang UC-14.
+        timerP1.pause();
         timerP2.pause();
-    }
 
-    /** Player 1 thua (mở trúng mìn) */
-    private void handleLoseP1(int explodedRow, int explodedCol) {
-        stateP1 = GameState.LOSE;
-        timerP1.pause(); // Dừng đồng hồ P1
-        boardP1.revealAllMines();
-        pvpView.revealAllMinesP1(boardP1, explodedRow, explodedCol); // Lật toàn bộ mìn P1
-    }
+        int winner = 0; // 0 = Hoà
+        if (stateP1 == GameState.WIN && stateP2 == GameState.LOSE) winner = 1;
+        if (stateP2 == GameState.WIN && stateP1 == GameState.LOSE) winner = 2;
 
-    /** Player 2 thua (mở trúng mìn) */
-    private void handleLoseP2(int explodedRow, int explodedCol) {
-        stateP2 = GameState.LOSE;
-        timerP2.pause();
-        boardP2.revealAllMines();
-        pvpView.revealAllMinesP2(boardP2, explodedRow, explodedCol);
+        com.minesweeper.view.GameResultView resultView = new com.minesweeper.view.GameResultView();
+        com.minesweeper.view.GameResultView.Action action = resultView.showPvP(
+                (javafx.stage.Stage) pvpView.getRoot().getScene().getWindow(),
+                winner,
+                player1Name, player2Name,
+                timerP1.getElapsedSeconds(), timerP2.getElapsedSeconds(),
+                boardP1.flagCountProperty().get(), boardP2.flagCountProperty().get()
+        );
+
+        if (action == com.minesweeper.view.GameResultView.Action.RESTART) {
+            initMatch();
+        } else {
+            if (onMatchEnd != null) onMatchEnd.run();
+        }
     }
 
     // ── Getter ──────────────────────────────────────────────
