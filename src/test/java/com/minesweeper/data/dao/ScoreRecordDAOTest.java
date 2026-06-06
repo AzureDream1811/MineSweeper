@@ -13,8 +13,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * Test class cho ScoreRecordDAO.
  * Vị trí: src/test/java/com/minesweeper/data/dao/ScoreRecordDAOTest.java
  *
- * Dùng H2 in-memory DB thay MySQL để test độc lập, không cần kết nối thật.
- * DBConnection được override bằng TestDBHelper trong mỗi test.
+ * Dùng H2 in-memory DB thay MySQL — set System property TEST_DB_URL
+ * để DBConnection tự chuyển sang H2, không cần sửa DAO.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class ScoreRecordDAOTest {
@@ -22,9 +22,15 @@ class ScoreRecordDAOTest {
     private ScoreRecordDAO dao;
 
     @BeforeAll
-    static void setUpSchema() throws SQLException {
-        // Khởi tạo schema H2 một lần cho toàn bộ test class
+    static void setUpAll() throws SQLException {
+        // Bật test mode: DBConnection sẽ dùng H2 thay MySQL
+        TestDBHelper.enableTestMode();
         TestDBHelper.createSchema();
+    }
+
+    @AfterAll
+    static void tearDownAll() {
+        TestDBHelper.disableTestMode();
     }
 
     @BeforeEach
@@ -39,9 +45,9 @@ class ScoreRecordDAOTest {
     // ════════════════════════════════════════════════════════════
 
     /**
-     *   11.1.3. Hệ thống truy vấn cơ sở dữ liệu lấy danh sách thời gian tốt, sắp xếp theo thời gian. Hệ thống hiển thị bảng xếp hạng: Hệ thống truy vấn DB lấy danh sách best time,
+     * UC11 - 11.1.3: Hệ thống truy vấn DB lấy danh sách best time,
      *                sắp xếp tăng dần theo thời gian.
-     *  11.1.4. Hệ thống hiển thị bảng xếp hạng : Hiển thị bảng xếp hạng đúng thứ hạng.
+     * UC11 - 11.1.4: Hiển thị bảng xếp hạng đúng thứ hạng.
      */
     @Test
     @Order(1)
@@ -60,29 +66,27 @@ class ScoreRecordDAOTest {
         assertEquals(3, result.size(), "Phải có đúng 3 người chơi");
 
         // Thứ hạng 1 phải là Bob (thời gian thấp nhất = 30s)
-        assertEquals(1,     result.get(0).rank,       "Rank 1 phải là Bob");
-        assertEquals("Bob", result.get(0).playerName, "Tên rank 1 phải là Bob");
-        assertEquals(30,    result.get(0).bestSeconds,"Thời gian rank 1 phải là 30s");
+        assertEquals(1,     result.get(0).rank,        "Rank 1 phải là Bob");
+        assertEquals("Bob", result.get(0).playerName,  "Tên rank 1 phải là Bob");
+        assertEquals(30,    result.get(0).bestSeconds, "Thời gian rank 1 phải là 30s");
 
-        assertEquals(2,       result.get(1).rank,       "Rank 2 phải là Alice");
+        assertEquals(2,       result.get(1).rank);
         assertEquals("Alice", result.get(1).playerName);
 
-        assertEquals(3,       result.get(2).rank,       "Rank 3 phải là Carol");
+        assertEquals(3,       result.get(2).rank);
         assertEquals("Carol", result.get(2).playerName);
     }
 
     /**
-     *   11.1.3. Hệ thống truy vấn cơ sở dữ liệu lấy danh sách thời gian tốt, sắp xếp theo thời gian. Hệ thống hiển thị bảng xếp hạng: Chỉ tính lượt thắng (result = 'WIN').
+     * UC11 - 11.1.3: Chỉ tính lượt thắng (result = 'WIN'), bỏ qua LOSE.
      */
     @Test
     @Order(2)
     @DisplayName("getSoloLeaderboard - chỉ tính lượt WIN, bỏ qua LOSE")
     void getSoloLeaderboard_shouldExcludeLoseRecords() throws SQLException {
-        // Arrange — Alice thắng, Bob thua
+        // Arrange
         TestDBHelper.insertSoloWin("Alice", "EASY", 42);
-
-        // Insert thủ công một lượt LOSE của Bob
-        String bobParticipantId = insertSoleLose("Bob", "EASY", 99);
+        TestDBHelper.insertSoloLose("Bob",  "EASY", 99);
 
         // Act
         List<SoloRankRow> result = dao.getSoloLeaderboard("EASY", 10);
@@ -93,7 +97,7 @@ class ScoreRecordDAOTest {
     }
 
     /**
-     *  11.1.5 Hệ thống truy vấn lại dữ liệu và cập nhật bảng tương ứng theo bộ lọc người dùng.: Lọc đúng theo độ khó được chọn.
+     * UC11 - 11.1.5: Lọc đúng theo độ khó được chọn.
      */
     @Test
     @Order(3)
@@ -110,42 +114,41 @@ class ScoreRecordDAOTest {
         List<SoloRankRow> hardResult   = dao.getSoloLeaderboard("HARD",   10);
 
         // Assert
-        assertEquals(1, easyResult.size(),   "EASY chỉ có 1 người");
-        assertEquals(1, mediumResult.size(), "MEDIUM chỉ có 1 người");
-        assertEquals(1, hardResult.size(),   "HARD chỉ có 1 người");
-
+        assertEquals(1,       easyResult.size(),           "EASY chỉ có 1 người");
+        assertEquals(1,       mediumResult.size(),         "MEDIUM chỉ có 1 người");
+        assertEquals(1,       hardResult.size(),           "HARD chỉ có 1 người");
         assertEquals("Alice", easyResult.get(0).playerName);
         assertEquals("Bob",   mediumResult.get(0).playerName);
         assertEquals("Carol", hardResult.get(0).playerName);
     }
 
     /**
-     *   11.1.3. Hệ thống truy vấn cơ sở dữ liệu lấy danh sách thời gian tốt, sắp xếp theo thời gian. Hệ thống hiển thị bảng xếp hạng: Mỗi player chỉ lấy best time (MIN), không lấy nhiều lần.
+     * UC11 - 11.1.3: Mỗi player chỉ lấy best time (MIN), không xuất hiện nhiều lần.
      */
     @Test
     @Order(4)
     @DisplayName("getSoloLeaderboard - mỗi player chỉ xuất hiện 1 lần với best time")
     void getSoloLeaderboard_shouldReturnBestTimePerPlayer() throws SQLException {
-        // Arrange — Alice chơi 2 lần
+        // Arrange — Alice chơi 2 lần, lần 2 tốt hơn
         TestDBHelper.insertSoloWin("Alice", "EASY", 80);
-        TestDBHelper.insertSoloWin("Alice", "EASY", 42); // lần 2 tốt hơn
+        TestDBHelper.insertSoloWin("Alice", "EASY", 42);
 
         // Act
         List<SoloRankRow> result = dao.getSoloLeaderboard("EASY", 10);
 
         // Assert
-        assertEquals(1, result.size(), "Alice chỉ xuất hiện 1 lần");
-        assertEquals(42, result.get(0).bestSeconds, "Phải lấy best time = 42s");
+        assertEquals(1,  result.size(),               "Alice chỉ xuất hiện 1 lần");
+        assertEquals(42, result.get(0).bestSeconds,   "Phải lấy best time = 42s");
     }
 
     /**
-     *  11.2.2: Truy vấn DB trả về rỗng khi chưa có dữ liệu.
+     * UC11 - 11.2.2: Truy vấn DB trả về rỗng khi chưa có dữ liệu.
      */
     @Test
     @Order(5)
     @DisplayName("getSoloLeaderboard - trả về rỗng khi chưa có kỷ lục")
     void getSoloLeaderboard_shouldReturnEmpty_whenNoData() throws SQLException {
-        // Arrange — DB rỗng (đã clearAll trong @BeforeEach)
+        // Arrange — DB rỗng (clearAll trong @BeforeEach)
 
         // Act
         List<SoloRankRow> result = dao.getSoloLeaderboard("EASY", 10);
@@ -155,16 +158,18 @@ class ScoreRecordDAOTest {
     }
 
     /**
-     *  11.1.3: Giới hạn số hàng trả về theo tham số limit.
+     * UC11 - 11.1.3: Giới hạn số hàng trả về theo tham số limit.
      */
     @Test
     @Order(6)
     @DisplayName("getSoloLeaderboard - giới hạn đúng số hàng theo limit")
     void getSoloLeaderboard_shouldRespectLimit() throws SQLException {
-        // Arrange — 5 người chơi
-        for (int i = 1; i <= 5; i++) {
-            TestDBHelper.insertSoloWin("Player" + i, "EASY", i * 10);
-        }
+        // Arrange — 5 người chơi khác nhau
+        TestDBHelper.insertSoloWin("P1", "EASY", 10);
+        TestDBHelper.insertSoloWin("P2", "EASY", 20);
+        TestDBHelper.insertSoloWin("P3", "EASY", 30);
+        TestDBHelper.insertSoloWin("P4", "EASY", 40);
+        TestDBHelper.insertSoloWin("P5", "EASY", 50);
 
         // Act
         List<SoloRankRow> result = dao.getSoloLeaderboard("EASY", 3);
@@ -178,8 +183,8 @@ class ScoreRecordDAOTest {
     // ════════════════════════════════════════════════════════════
 
     /**
-     *  11.4.2: Hệ thống truy vấn lịch sử trận PvP từ DB.
-     *  11.4.3: Mỗi trận có đủ thông tin 2 player.
+     * UC11 - 11.4.2: Hệ thống truy vấn lịch sử trận PvP từ DB.
+     * UC11 - 11.4.3: Mỗi trận có đủ thông tin 2 player, tỉ số, thời gian.
      */
     @Test
     @Order(7)
@@ -204,7 +209,7 @@ class ScoreRecordDAOTest {
     }
 
     /**
-     *  11.4.4: Trả về rỗng khi chưa có trận PvP.
+     * UC11 - 11.4.4: Trả về rỗng khi chưa có trận PvP.
      */
     @Test
     @Order(8)
@@ -220,19 +225,18 @@ class ScoreRecordDAOTest {
     }
 
     /**
-     *  11.4.2: Giới hạn số trận trả về theo limit.
+     * UC11 - 11.4.2: Giới hạn số trận trả về theo limit.
      */
     @Test
     @Order(9)
     @DisplayName("getPvpHistory - giới hạn đúng số trận theo limit")
     void getPvpHistory_shouldRespectLimit() throws SQLException {
         // Arrange — 5 trận PvP
-        for (int i = 1; i <= 5; i++) {
-            TestDBHelper.insertPvpMatch(
-                    "P1_" + i, i * 10, "WIN",
-                    "P2_" + i, i * 20, "LOSE"
-            );
-        }
+        TestDBHelper.insertPvpMatch("P1A", 10, "WIN",  "P1B", 20, "LOSE");
+        TestDBHelper.insertPvpMatch("P2A", 15, "WIN",  "P2B", 25, "LOSE");
+        TestDBHelper.insertPvpMatch("P3A", 20, "WIN",  "P3B", 30, "LOSE");
+        TestDBHelper.insertPvpMatch("P4A", 25, "LOSE", "P4B", 18, "WIN");
+        TestDBHelper.insertPvpMatch("P5A", 30, "LOSE", "P5B", 22, "WIN");
 
         // Act
         List<PvpMatchRow> result = dao.getPvpHistory(3);
@@ -242,26 +246,28 @@ class ScoreRecordDAOTest {
     }
 
     /**
-     *  11.4.2: Không trả về trận chỉ có 1 participant (dữ liệu không hợp lệ).
+     * UC11 - 11.4.2: Bỏ qua trận chỉ có 1 participant (dữ liệu không đầy đủ).
      */
     @Test
     @Order(10)
     @DisplayName("getPvpHistory - bỏ qua trận thiếu player")
     void getPvpHistory_shouldSkipIncompleteMatch() throws SQLException {
-        // Arrange — insert session PvP nhưng chỉ có 1 participant
+        // Arrange — session PvP chỉ có 1 participant
         String sesId = java.util.UUID.randomUUID().toString();
         String p1Id  = java.util.UUID.randomUUID().toString();
         String gp1Id = java.util.UUID.randomUUID().toString();
 
-        try (var conn = TestDBHelper.getConnection()) {
-            conn.createStatement().execute(
-                    "INSERT INTO player (id, name) VALUES ('" + p1Id + "', 'LonePlayer')");
-            conn.createStatement().execute(
-                    "INSERT INTO game_session (id, mode, difficulty, status, board_rows, board_cols, total_mines) " +
-                            "VALUES ('" + sesId + "', 'PVP', 'EASY', 'finished', 9, 9, 10)");
-            conn.createStatement().execute(
-                    "INSERT INTO game_participant (id, session_id, player_id, player_order, status, elapsed_seconds) " +
-                            "VALUES ('" + gp1Id + "', '" + sesId + "', '" + p1Id + "', 1, 'WIN', 30)");
+        try (var conn = TestDBHelper.getConnection();
+             var st   = conn.createStatement()) {
+            st.execute("INSERT INTO player (id, name) VALUES ('"
+                    + p1Id + "', 'LonePlayer')");
+            st.execute("INSERT INTO game_session "
+                    + "(id, mode, difficulty, status, board_rows, board_cols, total_mines) "
+                    + "VALUES ('" + sesId + "', 'PVP', 'EASY', 'finished', 9, 9, 10)");
+            st.execute("INSERT INTO game_participant "
+                    + "(id, session_id, player_id, player_order, status, elapsed_seconds) "
+                    + "VALUES ('" + gp1Id + "', '" + sesId + "', '"
+                    + p1Id + "', 1, 'WIN', 30)");
         }
 
         // Act
@@ -272,17 +278,18 @@ class ScoreRecordDAOTest {
     }
 
     // ════════════════════════════════════════════════════════════
-    // insert() — giữ nguyên từ code cũ, test smoke
+    // insert()
     // ════════════════════════════════════════════════════════════
 
     /**
-     * Smoke test: insert score_record thành công.
+     * UC11 - 11.1.3: Insert score_record vào DB thành công.
+     * Lưu ý: H2 không enforce FK, nên test này chỉ verify insert logic.
      */
     @Test
     @Order(11)
     @DisplayName("insert - lưu score_record vào DB thành công")
     void insert_shouldPersistScoreRecord() throws SQLException {
-        // Arrange
+        // Arrange — tạo đủ dữ liệu trong H2 trước
         String participantId = TestDBHelper.insertSoloWin("TestPlayer", "EASY", 99);
 
         com.minesweeper.data.model.ScoreRecord sr = new com.minesweeper.data.model.ScoreRecord(
@@ -297,33 +304,13 @@ class ScoreRecordDAOTest {
 
         // Assert
         assertTrue(success, "Insert phải trả về true khi thành công");
-    }
 
-    // ════════════════════════════════════════════════════════════
-    // Helper private
-    // ════════════════════════════════════════════════════════════
-
-    /** Insert một lượt thua để test filter result = WIN */
-    private String insertSoleLose(String playerName, String difficulty,
-                                  int elapsed) throws SQLException {
-        String playerId      = java.util.UUID.randomUUID().toString();
-        String sessionId     = java.util.UUID.randomUUID().toString();
-        String participantId = java.util.UUID.randomUUID().toString();
-
-        try (var conn = TestDBHelper.getConnection()) {
-            conn.createStatement().execute(
-                    "INSERT INTO player (id, name) VALUES ('" + playerId + "', '" + playerName + "')");
-            conn.createStatement().execute(
-                    "INSERT INTO game_session (id, mode, difficulty, status, board_rows, board_cols, total_mines) " +
-                            "VALUES ('" + sessionId + "', 'SOLO', '" + difficulty + "', 'finished', 9, 9, 10)");
-            conn.createStatement().execute(
-                    "INSERT INTO game_participant (id, session_id, player_id, player_order, status) " +
-                            "VALUES ('" + participantId + "', '" + sessionId + "', '" + playerId + "', 1, 'LOSE')");
-            conn.createStatement().execute(
-                    "INSERT INTO score_record (id, participant_id, session_id, mode, difficulty, elapsed_seconds, result) " +
-                            "VALUES ('" + java.util.UUID.randomUUID() + "', '" + participantId + "', '" +
-                            sessionId + "', 'SOLO', '" + difficulty + "', " + elapsed + ", 'LOSE')");
+        // Verify dữ liệu thực sự đã được lưu
+        try (var conn = TestDBHelper.getConnection();
+             var rs = conn.createStatement()
+                     .executeQuery("SELECT COUNT(*) FROM score_record WHERE elapsed_seconds = 50")) {
+            rs.next();
+            assertEquals(1, rs.getInt(1), "Phải có đúng 1 record với elapsed_seconds = 50");
         }
-        return participantId;
     }
 }

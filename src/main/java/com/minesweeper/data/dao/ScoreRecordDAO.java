@@ -54,21 +54,20 @@ public class ScoreRecordDAO {
      */
     public List<SoloRankRow> getSoloLeaderboard(String difficulty, int limit) {
         String sql = """
-            SELECT
-                p.name                         AS player_name,
-                MIN(sr.elapsed_seconds)        AS best_seconds,
-                MIN(sr.achieved_at)            AS achieved_at
-            FROM score_record sr
-            JOIN game_participant gp ON gp.id  = sr.participant_id
-            JOIN player           p  ON p.id   = gp.player_id
-            WHERE sr.mode       = 'SOLO'
-              AND sr.result     = 'WIN'
-              AND sr.difficulty = ?
-            GROUP BY gp.player_id, p.name
-            ORDER BY best_seconds ASC
-            LIMIT ?
-            """;
-
+        SELECT
+            p.name                         AS player_name,
+            MIN(sr.elapsed_seconds)        AS best_seconds,
+            MIN(sr.achieved_at)            AS achieved_at
+        FROM score_record sr
+        JOIN game_participant gp ON gp.id  = sr.participant_id
+        JOIN player           p  ON p.id   = gp.player_id
+        WHERE sr.mode       = 'SOLO'
+          AND sr.result     = 'WIN'
+          AND sr.difficulty = ?
+        GROUP BY p.name -- << CHỈ GOM NHÓM THEO TÊN NGƯỜI CHƠI Ở ĐÂY
+        ORDER BY best_seconds ASC
+        LIMIT ?
+        """;
         List<SoloRankRow> rows = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
