@@ -341,27 +341,14 @@ class BoardTest {
         }
         testBoard = new Board(10, 10, 18, layout);
 
-        // Act - Reveal từng cell một để không trigger mass reveal
-        testBoard.revealCell(0, 0);
+        // Act - Reveal a numbered safe cell to avoid triggering flood fill
+        boolean result = testBoard.revealCell(8, 8);
 
-        // Make sure we don't accidentally win
-        // Count unrevealed non-mine cells
-        int unrevealedNonMines = 0;
-        for (int r = 0; r < 10; r++) {
-            for (int c = 0; c < 10; c++) {
-                Cell cell = testBoard.getCell(r, c);
-                if (!cell.isMine() && !cell.isRevealed()) {
-                    unrevealedNonMines++;
-                }
-            }
-        }
-
-        // Assert - If there are unrevealed non-mine cells, should not win
-        if (unrevealedNonMines > 0) {
-            assertFalse(testBoard.checkWin(),
-                "Should not win with unrevealed non-mine cells (unrevealed: " + unrevealedNonMines + ")");
-        }
-    }
+        // Assert
+        assertTrue(result, "Revealing a safe cell should return true");
+        assertTrue(testBoard.getCell(8, 8).isRevealed(), "Clicked cell should be revealed");
+        assertFalse(testBoard.checkWin(),
+            "Should not win when there are still unrevealed non-mine cells");
 
     // ─── Cell with Adjacent Mines ──────────────────────────────────────
 
