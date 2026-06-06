@@ -51,6 +51,9 @@ public class PvPGameController {
     // Callback để báo MainView khi trận kết thúc (tuỳ chọn mở rộng sau)
     private Runnable onMatchEnd;
 
+    private PvPRequestType pendingRequest;
+    private int requesterPlayer;
+    private boolean waitingConfirmation = false;
     /**
      * [UC5.4.4] Khởi tạo controller với config từ dialog.
      * Tạo view, sinh board, đăng ký key, bắt đầu trận.
@@ -101,6 +104,13 @@ public class PvPGameController {
         pvpView.getHeaderView().bindTimerP2(timerP2.elapsedSecondsProperty());
 
         pvpView.getHeaderView().setOnReset(() -> requestAction(1, PvPRequestType.RESET));
+        pvpView.getHeaderView().setOnPause(() -> {
+            if (stateP1 == GameState.PAUSED) {
+                requestAction(1, PvPRequestType.RESUME);
+            } else {
+                requestAction(1, PvPRequestType.PAUSE);
+            }
+        });
 
         // Bind số mìn còn lại (totalMines - flagCount) cho mỗi bên
         IntegerProperty remainP1 = new SimpleIntegerProperty();
@@ -174,8 +184,11 @@ public class PvPGameController {
             case S     -> moveCursorP1( 1,  0); // Xuống
             case A     -> moveCursorP1( 0, -1); // Trái
             case D     -> moveCursorP1( 0,  1); // Phải
-            case SPACE -> revealP1();            // Mở ô tại cursor P1
-            case F     -> flagP1();              // Cắm/bỏ cờ tại cursor P1
+            case SPACE -> revealP1();                   // Mở ô tại cursor P1
+            case F     -> flagP1();                     // Cắm/bỏ cờ tại cursor P1
+            case R -> requestAction(1, PvPRequestType.RESET);
+            case T -> requestAction(1, PvPRequestType.PAUSE);
+            case Y -> requestAction(1, PvPRequestType.RESUME);
 
             // ── Player 2 Controls (Arrow / Enter / P) ───────
             case UP    -> moveCursorP2(-1,  0); // Lên
@@ -184,7 +197,14 @@ public class PvPGameController {
             case RIGHT -> moveCursorP2( 0,  1); // Phải
             case ENTER -> revealP2();            // Mở ô tại cursor P2
             case P     -> flagP2();              // Cắm/bỏ cờ tại cursor P2
+            case NUMPAD1 -> requestAction(2, PvPRequestType.RESET);
+            case NUMPAD2 -> requestAction(2, PvPRequestType.PAUSE);
+            case NUMPAD3 -> requestAction(2, PvPRequestType.RESUME);
 
+            case C -> confirmRequest(1); // Player 1 xác nhận
+            case X -> rejectRequest(1); // Player 1 từ chối
+            case O -> confirmRequest(2); // Player 2 xác nhận
+            case N -> rejectRequest(2); // Player 2 từ chối
             default -> handled = false; // Phím khác → bỏ qua
         }
 
@@ -297,6 +317,82 @@ public class PvPGameController {
         boardP2.revealAllMines();
         pvpView.revealAllMinesP2(boardP2, explodedRow, explodedCol);
     }
+
+    private void requestAction(int player, PvPRequestType type) {
+        if (type == PvPRequestType.PAUSE && stateP1 == GameState.PAUSED) return;
+        if (type == PvPRequestType.RESUME && stateP1 != GameState.PAUSED) return;
+        if (waitingConfirmation) return;
+        requesterPlayer = player;
+        pendingRequest = type;
+        waitingConfirmation = true;
+        if (player == 1) {
+            pvpView.showOverlay(
+                    "Yêu cầu " + type,
+                    "Player 1 yêu cầu " + type + ". Player 2 nhấn O để đồng ý hoặc N để từ chối."
+            );
+        } else {
+            pvpView.showOverlay(
+                    "Yêu cầu " + type,
+                    "Player 2 yêu cầu " + type + ". Player 1 nhấn C để đồng ý hoặc X để từ chối."
+            );
+        }
+    }
+
+    private void confirmRequest(int confirmerPlayer) {
+        if (!waitingConfirmation) return;
+        if (confirmerPlayer == requesterPlayer)
+            return;
+        switch (pendingRequest) {
+            case RESET -> resetMatch();
+            case PAUSE -> pauseMatch();
+            case RESUME -> resumeMatch();
+        }
+        pvpView.hideOverlay();
+        clearRequest();
+    }
+
+    private void rejectRequest(int rejecterPlayer) {
+        if (!waitingConfirmation) return;
+        if (rejecterPlayer == requesterPlayer) return;
+
+        pvpView.hideOverlay();
+        pvpView.showRequest("Yêu cầu bị từ chối");
+        clearRequest();
+    }
+
+    private void clearRequest() {
+
+        waitingConfirmation = false;
+        pendingRequest = null;
+        requesterPlayer = 0;
+    }
+
+    private void resetMatch() {
+
+        initMatch();
+
+        pvpView.showRequest("Trận đấu đã được reset");
+    }
+
+    private void pauseMatch() {
+        timerP1.pause();
+        timerP2.pause();
+        stateP1 = GameState.PAUSED;
+        stateP2 = GameState.PAUSED;
+        pvpView.getHeaderView().setPauseEmoji(true);
+        pvpView.showRequest("Trận đấu đã tạm dừng");
+    }
+
+    private void resumeMatch() {
+        timerP1.resume();
+        timerP2.resume();
+        stateP1 = GameState.PVP_SPLIT_START;
+        stateP2 = GameState.PVP_SPLIT_START;
+        pvpView.getHeaderView().setPauseEmoji(false);
+        pvpView.showRequest("Tiếp tục trận đấu");
+    }
+
+
 
     // ── Getter ──────────────────────────────────────────────
 
