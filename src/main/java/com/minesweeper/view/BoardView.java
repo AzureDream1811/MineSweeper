@@ -203,6 +203,7 @@ public class BoardView {
      */
     public void setDisabled(boolean disabled) {
         // TODO: grid.setDisable(disabled)
+        grid.setDisable(disabled);
     }
 
     // ── Event Handler Setters ─────────────────────────────────

@@ -123,6 +123,7 @@ public class GameController {
 
         mainView.getHeaderView().setResetEmoji("🙂");
         mainView.getHeaderView().showBestTime(record.getBestTime(difficulty));
+        mainView.getHeaderView().setPauseEmoji(false);
         mainView.setDisabled(false);
     }
 
