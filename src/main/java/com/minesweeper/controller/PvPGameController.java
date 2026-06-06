@@ -3,6 +3,7 @@ package com.minesweeper.controller;
 import com.minesweeper.model.Board;
 import com.minesweeper.model.GameState;
 import com.minesweeper.model.GameTimer;
+import com.minesweeper.model.PvPRequestType;
 import com.minesweeper.view.PvPBoardView;
 import com.minesweeper.view.PvPSetupDialog;
 
@@ -34,6 +35,14 @@ public class PvPGameController {
     private Board boardP2;                  // Board độc lập Player 2
     private GameState stateP1;             // Trạng thái game Player 1
     private GameState stateP2;             // Trạng thái game Player 2
+
+    private boolean p1Started;
+    private boolean p2Started;
+    
+    // Request state
+    private boolean waitingConfirmation = false;
+    private int requestingPlayer = 0;
+    private PvPRequestType pendingRequest = null;
 
     // ── Timer ─────────────────────────────────────────────────
     private final GameTimer timerP1 = new GameTimer(); // Đồng hồ riêng Player 1
@@ -144,6 +153,56 @@ public class PvPGameController {
             layout[pos[0]][pos[1]] = true; // Đánh dấu ô có mìn
         }
         return layout;
+    }
+
+    private void requestAction(int player, PvPRequestType type) {
+        if (stateP1 == GameState.WIN || stateP1 == GameState.LOSE) return;
+        
+        requestingPlayer = player;
+        pendingRequest = type;
+        waitingConfirmation = true;
+        
+        String action = switch (type) {
+            case RESET -> "Reset";
+            case PAUSE -> "Pause";
+            case RESUME -> "Resume";
+        };
+        pvpView.showRequest("Player " + player + " muon " + action + ". P" + (player == 1 ? 2 : 1) + " (C/O=Dong y, X/N=Tu choi)");
+        timerP1.pause();
+        timerP2.pause();
+    }
+
+    private void confirmRequest(int player) {
+        if (!waitingConfirmation || player == requestingPlayer) return; 
+        
+        waitingConfirmation = false;
+        switch (pendingRequest) {
+            case RESET -> initMatch();
+            case PAUSE -> {
+                stateP1 = GameState.PAUSED;
+                stateP2 = GameState.PAUSED;
+                pvpView.showRequest("Game Paused");
+                timerP1.pause();
+                timerP2.pause();
+            }
+            case RESUME -> {
+                stateP1 = GameState.PLAYING;
+                stateP2 = GameState.PLAYING;
+                pvpView.showRequest(""); // clear request text
+                timerP1.resume();
+                timerP2.resume();
+            }
+        }
+    }
+
+    private void rejectRequest(int player) {
+        if (!waitingConfirmation || player == requestingPlayer) return;
+        waitingConfirmation = false;
+        pvpView.showRequest("Yeu cau bi tu choi!");
+        if (stateP1 != GameState.PAUSED) {
+            timerP1.resume();
+            timerP2.resume();
+        }
     }
 
     // ── Key Listener ────────────────────────────────────────
