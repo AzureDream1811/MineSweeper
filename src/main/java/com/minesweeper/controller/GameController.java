@@ -1,5 +1,12 @@
 package com.minesweeper.controller;
 
+import com.minesweeper.data.dao.GameParticipantDAO;
+import com.minesweeper.data.dao.GameSessionDAO;
+import com.minesweeper.data.dao.PlayerDAO;
+import com.minesweeper.data.dao.ScoreRecordDAO;
+import com.minesweeper.data.model.GameParticipant;
+import com.minesweeper.data.model.GameSession;
+import com.minesweeper.data.model.Player;
 import com.minesweeper.model.Board;
 import com.minesweeper.model.GameState;
 import com.minesweeper.model.GameTimer;
@@ -14,6 +21,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
+import java.util.UUID;
+
 public class GameController {
 
     private Board board;
@@ -22,6 +31,13 @@ public class GameController {
     private GameState gameState;
     private Difficulty difficulty;
     private final MainView mainView;
+    private final PlayerDAO playerDAO = new PlayerDAO();
+    private final GameSessionDAO gameSessionDAO = new GameSessionDAO();
+    private final GameParticipantDAO gameParticipantDAO = new GameParticipantDAO();
+    private final ScoreRecordDAO  scoreRecordDAO = new ScoreRecordDAO();
+    //   11.1.3. Hệ thống truy vấn cơ sở dữ liệu lấy danh sách thời gian tốt, sắp xếp theo thời gian. Hệ thống hiển thị bảng xếp hạng: Lưu participant hiện tại để dùng khi insert score_record.
+    private String currentParticipantId;
+    private String currentSessionId;
 
     public GameController(MainView mainView) {
         this.mainView = mainView;
@@ -34,6 +50,7 @@ public class GameController {
         registerMenuHandlers();
         registerResultHandlers();
         registerPvPHandler(); // [UC5.4.1] Đăng ký handler cho nút PvP Cục Bộ
+        refreshMenuBestTimes();
     }
 
     // ── Setup ─────────────────────────────────────────────────
@@ -45,7 +62,8 @@ public class GameController {
         mainView.getHeaderView().setOnReset(this::reset);
         mainView.getHeaderView().setOnPause(this::togglePause);
         mainView.getHeaderView().setOnDifficultyChange(this::setDifficulty);
-        // UC_11: Nút High Score trên Header
+
+        // 11.1.1: Người chơi nhấn nút "High Score" trên Header.
         mainView.getHeaderView().setOnHighScore(this::showHighScore);
     }
 
@@ -117,7 +135,9 @@ public class GameController {
         // 2. Reset state
         gameState = GameState.IDLE;
         timer.reset();
-
+        // 11.1.3. Hệ thống truy vấn cơ sở dữ liệu lấy danh sách thời gian tốt, sắp xếp theo thời gian. Hệ thống hiển thị bảng xếp hạng: Reset participant/session — sẽ tạo mới khi ván bắt đầu.
+        currentParticipantId = null;
+        currentSessionId     = null;
         mainView.getBoardView().build(board.getRows(), board.getCols());
         bindProperties();
 
@@ -167,9 +187,7 @@ public class GameController {
         }
     }
 
-    /**
-     * Mở dialog High Score (UC_11). Không cần difficulty vừa lập kỷ lục (người dùng chủ động mở)
-     */
+    //11.1.2: Hệ thống mở dialog High Score dạng modal, mặc định tab Solo, mức Dễ.
     private void showHighScore() {
         mainView.showHighScore(null);
     }
@@ -202,6 +220,8 @@ public class GameController {
         if (gameState == GameState.IDLE) {
             timer.start();
             gameState = GameState.PLAYING;
+            //   11.1.3. Hệ thống truy vấn cơ sở dữ liệu lấy danh sách thời gian tốt, sắp xếp theo thời gian. Hệ thống hiển thị bảng xếp hạng: Tạo session + participant khi ván chơi bắt đầu.
+            initSoloSession();
         }
 
         // UC-09 - 9.1.4, 9.1.5, 9.1.6, 9.1.8:
@@ -284,14 +304,18 @@ public class GameController {
 
         // UC_14 step 4: kiểm tra và lưu high score
         boolean isNewRecord = record.update(difficulty, elapsed);
-
+        //   11.1.3. Hệ thống truy vấn cơ sở dữ liệu lấy danh sách thời gian tốt, sắp xếp theo thời gian. Hệ thống hiển thị bảng xếp hạng: Lưu kết quả thắng vào DB score_record.
+        saveScoreRecord(elapsed, "WIN");   // ← THIẾU DÒNG NÀY
+        //  11.1.0: Cập nhật lại kỷ lục trên màn hình chính sau khi lập kỷ lục mới.
+        refreshMenuBestTimes();
         // Cập nhật tooltip Best Time trên header
         mainView.getHeaderView().showBestTime(record.getBestTime(difficulty));
 
         // UC_14 step 5: hiện dialog kết quả (có badge kỷ lục mới nếu isNewRecord)
         mainView.showResult(true, elapsed, isNewRecord);
 
-        // UC_11: nếu vừa lập kỷ lục mới, tự mở bảng High Score để highlight
+        //  11.3.1: Sau khi thắng, hệ thống lưu kỷ lục mới vào DB.
+        //  11.3.2: Hệ thống tự động mở dialog High Score, chọn sẵn mức độ vừa chơi.
         if (isNewRecord) {
             mainView.showHighScore(difficulty);
         }
@@ -322,7 +346,8 @@ public class GameController {
         // UC-17 - 17.1.8:
         // Hệ thống cập nhật biểu tượng trạng thái thua trên giao diện.
         mainView.getHeaderView().setResetEmoji("😵");
-
+        //  11.1.3. Hệ thống truy vấn cơ sở dữ liệu lấy danh sách thời gian tốt, sắp xếp theo thời gian. Hệ thống hiển thị bảng xếp hạng: Lưu kết quả thua vào DB score_record.
+        saveScoreRecord(elapsed, "LOSE");
         // UC-17 - 17.1.9:
         // Hệ thống hiển thị kết quả thua.
         mainView.showResult(false, elapsed, false);
@@ -344,5 +369,84 @@ public class GameController {
                     board.getCell(pos[0], pos[1])
             );
         }
+    }
+    // 11.1.0: Màn hình chính hiển thị sẵn kỷ lục tốt nhất của từng mức độ khó.
+    private void refreshMenuBestTimes() {
+        for (Difficulty d : Difficulty.values()) {
+            mainView.getMenuView().updateBestTime(d, record.getBestTime(d));
+        }
+    }
+
+    private void initSoloSession() {
+        new Thread(() -> {
+            try {
+                // Bước 1: Tạo Player mặc định (chưa có hệ thống login)
+                Player player = new Player(UUID.randomUUID().toString(), "Người chơi");
+                playerDAO.insert(player);
+
+                // Bước 2: Tạo GameSession
+                GameSession session = new GameSession(
+                        UUID.randomUUID().toString(),
+                        "SOLO",
+                        difficulty.name(),
+                        board.getRows(),
+                        board.getCols(),
+                        board.getTotalMines()
+                );
+                session.setStatus("playing");
+                gameSessionDAO.insert(session);
+
+                // Bước 3: Tạo GameParticipant
+                GameParticipant participant = new GameParticipant(
+                        UUID.randomUUID().toString(),
+                        session.getId(),
+                        player.getId(),
+                        1
+                );
+                participant.setStatus("playing");
+                gameParticipantDAO.insert(participant);
+
+                // Lưu lại ID để dùng trong handleWin / handleLose
+                currentSessionId     = session.getId();
+                currentParticipantId = participant.getId();
+
+            } catch (Exception e) {
+                //  11.5.1: Lỗi DB → bỏ qua, game vẫn chạy bình thường.
+                e.printStackTrace();
+            }
+        }, "solo-session-init").start();
+    }
+    // ── DB: Score record insert ───────────────────────────────
+
+    /**
+     *   11.1.3. Hệ thống truy vấn cơ sở dữ liệu lấy danh sách thời gian tốt, sắp xếp theo thời gian. Hệ thống hiển thị bảng xếp hạng: Insert score_record vào DB sau khi ván kết thúc.
+     * Chạy trên background thread để không block UI.
+     *
+     * @param elapsedSeconds thời gian thực hiện
+     * @param result         "WIN" hoặc "LOSE"
+     */
+    private void saveScoreRecord(int elapsedSeconds, String result) {
+        if (currentParticipantId == null || currentSessionId == null) {
+            // Session chưa kịp khởi tạo (ván quá nhanh) → bỏ qua
+            return;
+        }
+        new Thread(() -> {
+            try {
+                com.minesweeper.data.model.ScoreRecord sr =
+                        new com.minesweeper.data.model.ScoreRecord(
+                                UUID.randomUUID().toString(),
+                                currentParticipantId,
+                                currentSessionId,
+                                "SOLO",
+                                difficulty.name(),
+                                elapsedSeconds,
+                                result
+                        );
+                scoreRecordDAO.insert(sr);
+            } catch (Exception e) {
+                //  11.5.1: Lỗi DB → bỏ qua, game vẫn chạy bình thường.
+                e.printStackTrace();
+            }
+        }, "score-record-save").start();
     }
 }
