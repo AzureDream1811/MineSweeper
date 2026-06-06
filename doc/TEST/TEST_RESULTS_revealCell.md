@@ -19,7 +19,7 @@
 | TC-04 | Clicking flagged cell should not reveal it                     | `revealCell(2,2)` on flagged cell with adjacent mines | Returns true, cell stays flagged and hidden              | ✅ PASS  |
 | TC-05 | Clicking mine should return false                              | `revealCell(5,5)` where mine exists                   | Returns false, mine cell is revealed                     | ✅ PASS  |
 | TC-06 | Clicked mine should be in lastRevealedPositions                | Hit mine at (7,7)                                     | Mine position added to lastRevealedPositions             | ✅ PASS  |
-| TC-07 | Clicking safe cell should reveal it and return true            | `revealCell(3,3)` on empty safe cell                  | Returns true, cell revealed, not a mine                  | ✅ PASS  |
+| TC-07 | Clicking safe cell should reveal it and return true            | `revealCell(0,1)` on empty safe cell                  | Returns true, cell revealed, not a mine                  | ✅ PASS  |
 | TC-08 | Clicking blank cell should trigger flood fill                  | `revealCell(0,0)` on blank (0 adjacent mines)         | Multiple cells revealed through flood fill               | ✅ PASS  |
 | TC-09 | Blank cell and flood fill should add to lastRevealedPositions  | Flood fill triggered from (0,0)                       | Multiple cell positions tracked in lastRevealedPositions | ✅ PASS  |
 | TC-10 | Flood fill should stop at numbered cells                       | Click (0,0) on board with no mines                    | All 25 cells revealed (5x5 board, no mines)              | ✅ PASS  |
@@ -80,8 +80,8 @@
 
 ## Build & Test Execution
 
-```
-mvn clean test -DskipTests=false
+```bash
+mvn clean test
 ```
 
 **Output:**
@@ -89,7 +89,8 @@ mvn clean test -DskipTests=false
 ```
 [INFO] Tests run: 20, Failures: 0, Errors: 0, Skipped: 0
 [INFO] BUILD SUCCESS
-[INFO] Total time: 1.960 s
+[INFO] Total time: 3.843 s
+[INFO] Finished at: 2026-06-06T16:48:30+07:00
 ```
 
 ---
@@ -102,4 +103,5 @@ mvn clean test -DskipTests=false
 - Tests verify integration with Board state management
 - Tests confirm UC-09 (Mở Ô) and UC-15 (Flood Fill) requirements
 - lastRevealedPositions tracking verified for animation/UI updates
+- All syntax errors fixed - file compiles cleanly
 
