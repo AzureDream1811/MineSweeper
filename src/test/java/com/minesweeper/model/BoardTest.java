@@ -393,26 +393,24 @@ class BoardTest {
     @Test
     @DisplayName("Multiple clicks on different cells should work correctly")
     void testMultipleConsecutiveClicks() {
-        // Arrange
-        board.revealCell(5, 5); // First click
+        // Arrange - deterministic mine layout so clicked cells are guaranteed safe
+        boolean[][] mineLayout = new boolean[ROWS][COLS];
+        mineLayout[0][0] = true;
+        Board deterministicBoard = new Board(ROWS, COLS, 1, mineLayout);
 
         // Act
-        boolean result1 = board.revealCell(4, 4);
-        boolean result2 = board.revealCell(6, 6);
-        boolean result3 = board.revealCell(3, 3);
+        boolean result1 = deterministicBoard.revealCell(0, 1); // numbered safe cell
+        boolean result2 = deterministicBoard.revealCell(4, 4);
+        boolean result3 = deterministicBoard.revealCell(6, 6);
 
         // Assert
-        assertTrue(result1, "Second click should succeed");
-        assertTrue(result2, "Third click should succeed");
-        assertTrue(result3, "Fourth click should succeed");
+        assertTrue(result1, "First click should succeed");
+        assertTrue(result2, "Second click should succeed");
+        assertTrue(result3, "Third click should succeed");
 
-        // Ít nhất một trong các ô phải được reveal an toàn
-        assertTrue(
-            board.getCell(4, 4).isRevealed() ||
-            board.getCell(6, 6).isRevealed() ||
-            board.getCell(3, 3).isRevealed(),
-            "At least one cell should be revealed"
-        );
+        assertTrue(deterministicBoard.getCell(0, 1).isRevealed(), "First cell should be revealed");
+        assertTrue(deterministicBoard.getCell(4, 4).isRevealed(), "Second cell should be revealed");
+        assertTrue(deterministicBoard.getCell(6, 6).isRevealed(), "Third cell should be revealed");
     }
 
     // ─── Regression Tests ──────────────────────────────────────────────
