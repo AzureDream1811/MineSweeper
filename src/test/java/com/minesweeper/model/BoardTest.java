@@ -173,19 +173,19 @@ class BoardTest {
 
     @Test
     @DisplayName("[UC-09-9.1.6] Clicking safe cell should reveal it and return true")
-    void testClickSafeCellRevealsIt() {
-        // Arrange
-        board.revealCell(5, 5); // First click
-        Cell safeCell = board.getCell(3, 3);
+        // Arrange - Use deterministic mine layout to avoid flaky tests due to random placement
+        boolean[][] mineLayout = new boolean[ROWS][COLS];
+        mineLayout[0][0] = true;
+        Board boardWithMine = new Board(ROWS, COLS, 1, mineLayout);
+        Cell safeCell = boardWithMine.getCell(0, 1);
 
         // Act
-        boolean result = board.revealCell(3, 3);
+        boolean result = boardWithMine.revealCell(0, 1);
 
         // Assert
         assertTrue(result, "Should return true for safe cell");
         assertTrue(safeCell.isRevealed(), "Safe cell should be revealed");
         assertFalse(safeCell.isMine(), "Safe cell should not be mine");
-    }
 
     // ─── UC-09 - 9.1.8 & UC-15: Blank Cell & Flood Fill ────────────────
 
