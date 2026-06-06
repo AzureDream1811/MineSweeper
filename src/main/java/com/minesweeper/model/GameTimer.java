@@ -50,7 +50,7 @@ public class GameTimer {
     }
 
     /**
-     * Bắt đầu chạy timer (UC_10/UC_16 — Start Timer).
+     * Bắt đầu chạy timer.
      * Chỉ được gọi khi người chơi mở ô đầu tiên.
      */
     public void start() {

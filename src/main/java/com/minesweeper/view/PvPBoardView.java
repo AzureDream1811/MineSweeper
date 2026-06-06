@@ -10,7 +10,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 /**
- * [UC5.4.4] Màn hình chơi PvP chia đôi gồm hai khu vực board độc lập.
+ * Màn hình chơi PvP chia đôi gồm hai khu vực board độc lập.
  * Mỗi bên có: tên người chơi, đồng hồ, số mìn còn lại, và lưới bàn cờ.
  * Con trỏ bàn phím hiển thị bằng highlight ô đang chọn.
  */
@@ -83,7 +83,7 @@ public class PvPBoardView {
                         "-fx-text-fill:red;"
         );
 
-        // [UC5.4.4] Bố cục PvP
+        // Bố cục PvP
         wrapper = new VBox(
                 10,
                 headerView.getRoot(),
@@ -155,7 +155,7 @@ public class PvPBoardView {
     // ── Build lưới bàn cờ ────────────────────────────────────
 
     /**
-     * [UC5.4.4] Khởi tạo lưới CellView cho cả hai bên từ cùng một kích thước Board.
+     * Khởi tạo lưới CellView cho cả hai bên từ cùng một kích thước Board.
      * Không gán mouse handler vì PvP điều khiển bằng bàn phím.
      */
     public void buildBoards(int rows, int cols) {
@@ -231,7 +231,7 @@ public class PvPBoardView {
     // ── Di chuyển con trỏ bàn phím ─────────────────────────
 
     /**
-     * [UC5.4.6] Di chuyển con trỏ Player 1 (W/A/S/D).
+     * Di chuyển con trỏ Player 1 (W/A/S/D).
      * @return int[]{row, col} vị trí con trỏ mới
      */
     public int[] moveP1Cursor(int dRow, int dCol) {
@@ -246,7 +246,7 @@ public class PvPBoardView {
     }
 
     /**
-     * [UC5.4.6] Di chuyển con trỏ Player 2 (phím mũi tên).
+     * Di chuyển con trỏ Player 2 (phím mũi tên).
      * @return int[]{row, col} vị trí con trỏ mới
      */
     public int[] moveP2Cursor(int dRow, int dCol) {

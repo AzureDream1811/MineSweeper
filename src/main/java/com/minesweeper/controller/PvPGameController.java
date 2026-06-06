@@ -23,10 +23,10 @@ import java.util.Random;
  * Controller điều phối toàn bộ chế độ PvP cục bộ.
  *
  * Đảm nhận các bước:
- *   [UC5.4.4] Khởi tạo GameView PvP chia đôi màn hình
- *   [UC5.4.5] Sinh mine layout ngẫu nhiên dùng chung cho hai board
- *   [UC5.4.6] Đăng ký Key Listeners điều khiển cursor P1 (WASD/Space/F) và P2 (Arrow/Enter/P)
- *   [UC5.4.7] Đặt trạng thái PVP_SPLIT_START, kích hoạt hai đồng hồ
+ *   - Khởi tạo GameView PvP chia đôi màn hình
+ *   - Sinh mine layout ngẫu nhiên dùng chung cho hai board
+ *   - Đăng ký Key Listeners điều khiển cursor P1 (WASD/Space/F) và P2 (Arrow/Enter/P)
+ *   - Đặt trạng thái PVP_SPLIT_START, kích hoạt hai đồng hồ
  */
 public class PvPGameController {
 
@@ -54,8 +54,11 @@ public class PvPGameController {
     private PvPRequestType pendingRequest;
     private int requesterPlayer;
     private boolean waitingConfirmation = false;
+
+    private boolean p1Started = false;
+    private boolean p2Started = false;
     /**
-     * [UC5.4.4] Khởi tạo controller với config từ dialog.
+     * Khởi tạo controller với config từ dialog.
      * Tạo view, sinh board, đăng ký key, bắt đầu trận.
      */
     public PvPGameController(PvPSetupDialog.Config config) {
@@ -72,31 +75,34 @@ public class PvPGameController {
     // ── Khởi tạo trận ──────────────────────────────────────
 
     /**
-     * [UC5.4.5] Sinh mine layout ngẫu nhiên và khởi tạo hai Board độc lập
+     * Sinh mine layout ngẫu nhiên và khởi tạo hai Board độc lập
      * dùng chung layout đó để đảm bảo công bằng tuyệt đối.
-     * [UC5.4.7] Đặt trạng thái PVP_SPLIT_START, kích hoạt hai đồng hồ.
+     * Đặt trạng thái PVP_SPLIT_START, kích hoạt hai đồng hồ.
      */
     public void initMatch() {
         int rows  = difficulty.getRows();
         int cols  = difficulty.getCols();
         int mines = difficulty.getMines();
 
-        // [UC5.4.5] Sinh mine layout ngẫu nhiên chung cho cả hai board
+        // Sinh mine layout ngẫu nhiên chung cho cả hai board
         boolean[][] sharedLayout = generateMineLayout(rows, cols, mines);
 
-        // [UC5.4.5] Tạo hai Board độc lập nhưng dùng cùng layout mìn
+        // Tạo hai Board độc lập nhưng dùng cùng layout mìn
         boardP1 = new Board(rows, cols, mines, sharedLayout);
         boardP2 = new Board(rows, cols, mines, sharedLayout);
 
         // Reset trạng thái mỗi người chơi về PVP_SPLIT_START
-        stateP1 = GameState.PVP_SPLIT_START; // [UC5.4.7]
-        stateP2 = GameState.PVP_SPLIT_START; // [UC5.4.7]
+        stateP1 = GameState.PVP_SPLIT_START;
+        stateP2 = GameState.PVP_SPLIT_START;
+
+        p1Started = false;
+        p2Started = false;
 
         // Reset đồng hồ trước khi dùng lại
         timerP1.reset();
         timerP2.reset();
 
-        // [UC5.4.4] Xây lưới hiển thị theo kích thước board
+        // Xây lưới hiển thị theo kích thước board
         pvpView.buildBoards(rows, cols);
 
         // Bind đồng hồ lên nhãn hiển thị
@@ -121,13 +127,13 @@ public class PvPGameController {
         remainP2.bind(Bindings.subtract(boardP2.getTotalMines(), boardP2.flagCountProperty()));
         pvpView.getHeaderView().bindMinesP2(remainP2);
 
-        // [UC5.4.7] Kích hoạt cả hai đồng hồ đồng thời ngay khi trận bắt đầu
+        // Kích hoạt cả hai đồng hồ đồng thời ngay khi trận bắt đầu
         timerP1.start();
         timerP2.start();
     }
 
     /**
-     * [UC5.4.5] Sinh ngẫu nhiên mine layout dạng boolean[][].
+     * Sinh ngẫu nhiên mine layout dạng boolean[][].
      * Không áp dụng safe-first-click (fair layout trước khi chơi).
      */
     private boolean[][] generateMineLayout(int rows, int cols, int totalMines) {
@@ -150,7 +156,7 @@ public class PvPGameController {
     // ── Key Listener ────────────────────────────────────────
 
     /**
-     * [UC5.4.6] Đăng ký Key Listener lên Scene để nhận phím từ cả hai người chơi.
+     * Đăng ký Key Listener lên Scene để nhận phím từ cả hai người chơi.
      * Gọi sau khi Scene đã được tạo và PvPBoardView đã được thêm vào.
      * Dùng addEventFilter để chặn trước khi các Button tiêu thụ phím Space/Enter.
      */
@@ -159,7 +165,7 @@ public class PvPGameController {
     }
 
     /**
-     * [UC5.4.6] Phân loại và xử lý phím bấm của từng người chơi:
+     * Phân loại và xử lý phím bấm của từng người chơi:
      *   Player 1: W/A/S/D = di chuyển, Space = mở ô, F = cắm cờ
      *   Player 2: Arrow Keys = di chuyển, Enter = mở ô, P = cắm cờ
      */
@@ -215,21 +221,23 @@ public class PvPGameController {
 
     // ── Di chuyển cursor ────────────────────────────────────
 
-    /** [UC5.4.6] Di chuyển con trỏ Player 1 */
+    /** Di chuyển con trỏ Player 1 */
     private void moveCursorP1(int dr, int dc) {
         pvpView.moveP1Cursor(dr, dc);
     }
 
-    /** [UC5.4.6] Di chuyển con trỏ Player 2 */
+    /** Di chuyển con trỏ Player 2 */
     private void moveCursorP2(int dr, int dc) {
         pvpView.moveP2Cursor(dr, dc);
     }
 
     // ── Mở ô ────────────────────────────────────────────────
 
-    /** [UC5.4.6] Player 1 nhấn Space → mở ô tại cursor */
+    /** Player 1 nhấn Space → mở ô tại cursor */
     private void revealP1() {
         if (stateP1 != GameState.PVP_SPLIT_START) return; // Không nhận thêm input khi đã kết thúc
+
+        p1Started = true;
 
         int[] cursor = pvpView.getCursorP1();
         int row = cursor[0], col = cursor[1];
@@ -249,9 +257,11 @@ public class PvPGameController {
         }
     }
 
-    /** [UC5.4.6] Player 2 nhấn Enter → mở ô tại cursor */
+    /** Player 2 nhấn Enter → mở ô tại cursor */
     private void revealP2() {
         if (stateP2 != GameState.PVP_SPLIT_START) return;
+
+        p2Started = true;
 
         int[] cursor = pvpView.getCursorP2();
         int row = cursor[0], col = cursor[1];
@@ -272,17 +282,26 @@ public class PvPGameController {
 
     // ── Cắm cờ ──────────────────────────────────────────────
 
-    /** [UC5.4.6] Player 1 nhấn F → cắm/bỏ cờ tại cursor */
+    /** Player 1 nhấn F → cắm/bỏ cờ tại cursor */
     private void flagP1() {
         if (stateP1 != GameState.PVP_SPLIT_START) return;
+        if (!p1Started) {
+            pvpView.showRequest("Player 1 phải mở ô đầu tiên trước khi cắm cờ");
+            return;
+        }
+
         int[] cursor = pvpView.getCursorP1();
         boardP1.toggleFlag(cursor[0], cursor[1]);
         pvpView.updateCellP1(cursor[0], cursor[1], boardP1.getCell(cursor[0], cursor[1]));
     }
 
-    /** [UC5.4.6] Player 2 nhấn P → cắm/bỏ cờ tại cursor */
+    /** Player 2 nhấn P → cắm/bỏ cờ tại cursor */
     private void flagP2() {
         if (stateP2 != GameState.PVP_SPLIT_START) return;
+        if (!p2Started) {
+            pvpView.showRequest("Player 2 phải mở ô đầu tiên trước khi cắm cờ");
+            return;
+        }
         int[] cursor = pvpView.getCursorP2();
         boardP2.toggleFlag(cursor[0], cursor[1]);
         pvpView.updateCellP2(cursor[0], cursor[1], boardP2.getCell(cursor[0], cursor[1]));
@@ -399,6 +418,6 @@ public class PvPGameController {
     /** Trả về PvPBoardView để MainView nhúng vào scene */
     public PvPBoardView getPvPBoardView() { return pvpView; }
 
-    /** Đăng ký callback khi trận kết thúc (mở rộng UC sau) */
+    /** Đăng ký callback khi trận kết thúc */
     public void setOnMatchEnd(Runnable handler) { this.onMatchEnd = handler; }
 }

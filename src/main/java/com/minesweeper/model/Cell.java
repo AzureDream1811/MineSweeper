@@ -67,12 +67,13 @@ public class Cell {
      * UR-02, UR-03, FR-09
      */
     public void toggleFlag() {
-        // TODO: implement toggle logic
+        // UC-1 - 1.1.2: Nếu chưa cắm cờ (HIDDEN), tiến hành cắm cờ (chuyển sang FLAGGED).
         if (state == CellState.HIDDEN) {
             state = CellState.FLAGGED;
+        // UC-2 - 2.1.3: Nếu đang cắm cờ (FLAGGED), gỡ cờ chuyển ô về trạng thái HIDDEN.
         } else if (state == CellState.FLAGGED) {
             state = CellState.HIDDEN;
-        } //REVEALED thì không làm gì cả
+        } // UC-1 - 1.2.3 / UC-2 - 2.2.3: Nếu đã mở (REVEALED), từ chối thao tác.
     }
 
     /**
