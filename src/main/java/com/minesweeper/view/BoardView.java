@@ -119,17 +119,15 @@ public class BoardView {
             int col = cv.getCol();
 
             if (button == MouseButton.PRIMARY && e.getClickCount() == 2) {
-                // Không thuộc UC-09, đây là UC-03 Chording
+                // UC-3 - 3.1.0: Người chơi nhấp đúp chuột vào một ô số đã được mở trên bàn cờ.
                 if (onChord != null) onChord.accept(row, col);
 
             } else if (button == MouseButton.PRIMARY) {
-                // UC-09 - 9.1.1:
-                // Người chơi nhấp chuột trái vào một ô chưa được mở trên bàn chơi.
-                // BoardView không xử lý logic game, chỉ chuyển tọa độ ô sang GameController.
+                // Người chơi nhấp chuột trái vào một ô.
                 if (onLeftClick != null) onLeftClick.accept(row, col);
 
             } else if (button == MouseButton.SECONDARY) {
-                // Không thuộc UC-09, đây là chức năng đặt/hủy cờ.
+                // UC-1 - 1.1.0 / UC-2 - 2.1.0: Người chơi click chuột phải vào ô trên bàn cờ.
                 if (onRightClick != null) onRightClick.accept(row, col);
             }
         });
@@ -146,8 +144,7 @@ public class BoardView {
      * @param cell trạng thái model mới của ô
      */
     public void updateCell(int row, int col, Cell cell) {
-        // UC-09 - 9.1.9:
-        // Nhận trạng thái mới của Cell từ Model và render lại ô tương ứng trên giao diện.
+        // UC-1 - 1.1.4 / UC-2 - 2.1.6 / UC-3 - 3.1.3: Làm mới giao diện hiển thị của ô tương ứng.
         cellViews[row][col].render(cell);
     }
 
@@ -160,11 +157,7 @@ public class BoardView {
      * @param explodedCol cột của ô mìn vừa nổ (-1 nếu không có)
      */
     public void revealAllMines(Board board, int explodedRow, int explodedCol) {
-        // UC-17 - 17.1.5:
-        // Hệ thống hiển thị các ô chứa mìn trên bàn chơi.
-        //
-        // View duyệt qua toàn bộ CellView, lấy Cell tương ứng từ Board
-        // và render các ô có chứa mìn.
+        // View duyệt qua toàn bộ CellView, lấy Cell tương ứng từ Board và render các ô có chứa mìn.
         for (int r = 0; r < cellViews.length; r++) {
             for (int c = 0; c < cellViews[0].length; c++) {
                 Cell cell = board.getCell(r, c);
@@ -175,9 +168,6 @@ public class BoardView {
                     // Render ô mìn bình thường.
                     cellViews[r][c].render(cell);
 
-                    // UC-17 - 17.1.6:
-                    // Hệ thống làm nổi bật ô mìn mà người chơi vừa mở.
-                    //
                     // Nếu đây là ô gây nổ, ép hiển thị mine với trạng thái exploded.
                     if (exploded) {
                         cellViews[r][c].showMine(true);
@@ -203,6 +193,7 @@ public class BoardView {
      */
     public void setDisabled(boolean disabled) {
         // TODO: grid.setDisable(disabled)
+        grid.setDisable(disabled);
     }
 
     // ── Event Handler Setters ─────────────────────────────────

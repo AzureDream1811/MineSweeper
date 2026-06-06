@@ -45,7 +45,7 @@ public class Board {
     }
 
     /**
-     * [UC5.4.5] Tạo Board với mine layout định sẵn (dùng chung cho PvP).
+     * Tạo Board với mine layout định sẵn (dùng chung cho PvP).
      * firstClick = false vì mìn đã được đặt sẵn, không cần an toàn click đầu.
      *
      * @param rows       số hàng
@@ -89,7 +89,6 @@ public class Board {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
 
-                // UC-09 - 9.1.4:
                 // Đảm bảo ô vừa được chọn không chứa mìn.
                 // Code hiện tại còn loại trừ thêm 8 ô xung quanh để click đầu tiên an toàn hơn.
                 if (Math.abs(r - safeRow) <= 1 && Math.abs(c - safeCol) <= 1) {
@@ -115,7 +114,6 @@ public class Board {
         }
 
         // Sau khi đặt mìn, tính số mìn xung quanh cho từng ô.
-        // Phục vụ UC-09 - 9.1.7.
         calculateAdjacentMines();
     }
 
@@ -147,9 +145,7 @@ public class Board {
     }
 
     public boolean revealCell(int row, int col) {
-        // UC-09 - 9.1.4:
-        // Nếu đây là lượt mở ô đầu tiên,
-        // hệ thống khởi tạo vị trí mìn và đảm bảo ô vừa được chọn không chứa mìn.
+        // Nếu đây là lượt mở ô đầu tiên, hệ thống khởi tạo vị trí mìn và đảm bảo ô vừa được chọn không chứa mìn.
         if (firstClick) {
             placeMines(row, col);
             firstClick = false;
@@ -161,36 +157,25 @@ public class Board {
 
         Cell cell = cells[row][col];
 
-        // UC-09 - 9.3.1:
-        // Nếu ô đã được mở hoặc đang được đánh dấu cờ,
-        // hệ thống không thực hiện thao tác mở ô.
+        // Nếu ô đã được mở hoặc đang được đánh dấu cờ, hệ thống không thực hiện thao tác mở ô.
         if (cell.isRevealed() || cell.isFlagged()) {
             return true;
         }
 
-        // UC-09 - 9.1.5:
-        // Hệ thống kiểm tra nội dung của ô được chọn.
-        //
-        // UC-09 - 9.2.1:
         // Nếu ô được chọn chứa mìn, hệ thống xác định người chơi thua ván.
         if (cell.isMine()) {
             cell.reveal();
             lastRevealedPositions.add(new int[]{row, col});
 
             // Trả về false để GameController gọi handleLose(row, col)
-            // tương ứng với UC-17 - Trigger Explosion.
             return false;
         }
 
-        // UC-09 - 9.1.6:
-        // Nếu ô được chọn không chứa mìn,
-        // hệ thống chuyển ô sang trạng thái đã mở.
+        // Nếu ô được chọn không chứa mìn, hệ thống chuyển ô sang trạng thái đã mở.
         cell.reveal();
         lastRevealedPositions.add(new int[]{row, col});
 
-        // UC-09 - 9.1.8:
-        // Nếu ô được mở không có mìn xung quanh,
-        // hệ thống tự động mở các ô trống liền kề và các ô biên có số liên quan.
+        // Nếu ô được mở không có mìn xung quanh, hệ thống tự động mở các ô trống liền kề.
         if (cell.isBlank()) {
             floodFill(row, col);
         }
@@ -208,16 +193,12 @@ public class Board {
      */
     // Board.java
     private void floodFill(int row, int col) {
-        // UC-15 - 15.5.1:
-        // Nếu vị trí bắt đầu nằm ngoài phạm vi bàn chơi,
-        // hệ thống bỏ qua vị trí đó.
+        // Nếu vị trí bắt đầu nằm ngoài phạm vi bàn chơi, hệ thống bỏ qua vị trí đó.
         if (!inBounds(row, col)) return;
 
         Deque<int[]> toVisit = new ArrayDeque<>();
 
-        // UC-15 - 15.1.2:
-        // Ô gốc đã được xác định là ô trống trong revealCell().
-        // Tại đây, hệ thống đưa ô đó vào danh sách duyệt để bắt đầu mở rộng.
+        // Bắt đầu duyệt từ ô gốc.
         toVisit.push(new int[]{row, col});
 
         while (!toVisit.isEmpty()) {
@@ -233,49 +214,29 @@ public class Board {
                     int neighborRow = currentRow + deltaRow;
                     int neighborCol = currentCol + deltaCol;
 
-                    // UC-15 - 15.5.1:
-                    // Nếu ô lân cận nằm ngoài phạm vi bàn chơi,
-                    // hệ thống bỏ qua vị trí đó.
+                    // Nếu ô lân cận nằm ngoài phạm vi bàn chơi, bỏ qua.
                     if (!inBounds(neighborRow, neighborCol)) continue;
 
                     Cell neighbor = cells[neighborRow][neighborCol];
 
-                    // UC-15 - 15.3.1:
-                    // Nếu ô lân cận đã được mở, hệ thống bỏ qua ô đó.
-                    //
-                    // UC-15 - 15.2.1:
-                    // Nếu ô lân cận đang được đánh dấu cờ, hệ thống bỏ qua ô đó.
-                    //
-                    // Post-condition UC-15:
-                    // Các ô chứa mìn không bị thay đổi.
+                    // Bỏ qua nếu ô lân cận đã được mở, đã cắm cờ hoặc chứa mìn.
                     if (neighbor.isRevealed()
                             || neighbor.isFlagged()
                             || neighbor.isMine()) {
                         continue;
                     }
 
-                    // UC-15 - 15.1.3:
-                    // Với mỗi ô lân cận hợp lệ, chưa được mở,
-                    // chưa bị đánh dấu cờ và không chứa mìn, hệ thống mở ô đó.
+                    // Mở ô lân cận hợp lệ.
                     neighbor.reveal();
                     lastRevealedPositions.add(new int[]{neighborRow, neighborCol});
 
-                    // UC-15 - 15.1.4:
-                    // Nếu ô lân cận là ô có số, hệ thống mở ô đó
-                    // nhưng không tiếp tục mở rộng từ ô đó.
-                    //
-                    // Nếu ô lân cận cũng là ô trống,
-                    // hệ thống tiếp tục mở rộng từ ô đó.
+                    // Nếu là ô trống, tiếp tục duyệt từ ô đó.
                     if (neighbor.isBlank()) {
                         toVisit.push(new int[]{neighborRow, neighborCol});
                     }
                 }
             }
         }
-
-        // UC-15 - 15.2.2 / 15.3.2 / 15.5.2:
-        // Sau khi bỏ qua ô không hợp lệ, ô đã mở hoặc ô cắm cờ,
-        // hệ thống tiếp tục kiểm tra các ô lân cận hợp lệ khác.
     }
 
     /**
@@ -292,11 +253,13 @@ public class Board {
      * Neighbor Column: Chỉ số cột thực tế của ô lân cận
      */
     public boolean chord(int row, int col) {
-        // TODO: kiểm tra số cờ xung quanh == adjacentMines của ô đó
-        // nếu đúng → mở toàn bộ ô HIDDEN xung quanh
         if (!inBounds(row, col)) return true;
         Cell cell = cells[row][col];
+        
+        // UC-3 - Tiền điều kiện: Ô được chọn phải ở trạng thái đã mở (REVEALED) và adjacentMines > 0.
         if (!cell.isRevealed() || cell.getAdjacentMines() == 0) return true;
+        
+        // UC-3 - 3.1.1: Đếm số lượng cờ đã cắm xung quanh ô.
         int FlaggedAround = 0;
         for (int i = -1; i <= 1; i++) {
             for (int j = -1; j <= 1; j++) {
@@ -309,7 +272,10 @@ public class Board {
                 }
             }
         }
+        
+        // UC-3 - 3.1.1: Kiểm tra xem số lượng cờ cắm xung quanh có khớp với giá trị của ô số hay không.
         if (FlaggedAround == cell.getAdjacentMines()) {
+            // UC-3 - 3.1.2: Nếu khớp, hệ thống thực hiện mở tất cả các ô ẩn lân cận.
             for (int i = -1; i <= 1; i++) {
                 for (int j = -1; j <= 1; j++) {
                     int nr = row + i;
@@ -318,11 +284,14 @@ public class Board {
                         Cell neighbor = cells[nr][nc];
                         if (neighbor.getState() == CellState.HIDDEN) {
                             boolean safe = revealCell(nr, nc);
+                            // UC-3 - 3.3.2 (Incorrect Flag Placement): Nếu mở trúng ô chứa mìn
                             if (!safe) return false;
                         }
                     }
                 }
             }
+        } else {
+            // UC-3 - 3.2.1 / 3.2.3 (Flag Count Mismatch): Nếu không khớp, từ chối thao tác mở nhanh.
         }
         return true;
     }
@@ -335,12 +304,21 @@ public class Board {
      * @param col cột
      */
     public void toggleFlag(int row, int col) {
-        // TODO: gọi cell.toggleFlag(), cập nhật flagCount (+1 hoặc -1)
         if (!inBounds(row, col)) return;
         Cell cell = cells[row][col];
+        
+        // UC-1 - 1.2.1 / UC-2 - 2.2.1: Người chơi click chuột phải vào ô đã được tiết lộ (REVEALED).
+        // UC-1 - 1.2.2 / UC-2 - 2.2.2: Hệ thống kiểm tra trạng thái ô.
+        // UC-1 - 1.2.3 / UC-2 - 2.2.3: Hệ thống từ chối thao tác đặt/gỡ cờ và không có thay đổi nào xảy ra.
         if (!cell.isRevealed()) {
+            // UC-2 - 2.1.2: Hệ thống kiểm tra ô đang ở trạng thái FLAGGED.
             boolean wasFlagged = cell.isFlagged();
+            
+            // UC-1 - 1.1.2: Hệ thống kiểm tra ô chưa mở; tiến hành chuyển đổi trạng thái cờ (toggleFlag).
+            // UC-2 - 2.1.3: Hệ thống gọi toggleFlag để chuyển ô về trạng thái HIDDEN.
             cell.toggleFlag();
+            
+            // UC-1 - 1.1.3 / UC-2 - 2.1.4: Cập nhật giá trị flagCount.
             if (!wasFlagged && cell.isFlagged()) {
                 flagCount.set(flagCount.get() + 1);
             } else if (wasFlagged && !cell.isFlagged()) {
@@ -358,9 +336,7 @@ public class Board {
      * @return true nếu người chơi đã thắng
      */
     public boolean checkWin() {
-        // UC-09 - 9.1.10:
-        // Kiểm tra điều kiện thắng:
-        // nếu còn ô không phải mìn nhưng chưa mở thì chưa thắng.
+        // Kiểm tra điều kiện thắng.
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
                 Cell cell = cells[i][j];
@@ -379,11 +355,7 @@ public class Board {
      * FR-17
      */
     public void revealAllMines() {
-        // UC-17 - 17.1.5:
-        // Hệ thống hiển thị các ô chứa mìn trên bàn chơi.
-        //
-        // Ở tầng Model, phương thức này duyệt toàn bộ bàn cờ,
-        // tìm các ô chứa mìn và chuyển chúng sang trạng thái REVEALED.
+        // Duyệt toàn bộ bàn cờ và chuyển các ô chứa mìn sang trạng thái REVEALED.
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 Cell cell = cells[r][c];

@@ -26,7 +26,7 @@ public class MainView {
     // Callback sau khi dialog kết quả đóng lại
     private Runnable onRestartRequested;
     private Runnable onMenuRequested;
-    // [UC5.4.4] Callback khi người chơi nhấn nút "Chơi PvP Cục Bộ"
+    // Callback khi người chơi nhấn nút "Chơi PvP Cục Bộ"
     private Runnable onPvPLocalRequested;
 
     public MainView(HeaderView headerView, BoardView boardView, ScoreRecord record) {
@@ -51,7 +51,7 @@ public class MainView {
     }
 
     /**
-     * Hiển thị kết quả game theo UC_14 — View Game Result.
+     * Hiển thị kết quả game.
      * Dừng clock, đổi emoji, khóa board, kiểm tra high score, hiện popup.
      *
      * @param win              true = thắng
@@ -68,7 +68,7 @@ public class MainView {
     }
 
     /**
-     * Mở dialog High Score theo UC_11 — View High Score.
+     * Mở dialog High Score.
      * @param newRecordDifficulty difficulty vừa lập kỷ lục (null nếu không)
      */
     public void showHighScore(Difficulty newRecordDifficulty) {
@@ -77,12 +77,12 @@ public class MainView {
     }
 
     /**
-     * [UC5.4.4] Hiển thị màn hình PvP chia đôi.
+     * Hiển thị màn hình PvP chia đôi.
      * Ẩn menu, ẩn gameLayer đơn, thêm pvpView vào root.
      */
     public void showPvP(PvPBoardView pvpView) {
-        menuView.getRoot().setVisible(false); // Ẩn menu chính (UC5.4.4)
-        gameLayer.setVisible(false);          // Ẩn chế độ đơn (UC5.4.4)
+        menuView.getRoot().setVisible(false); // Ẩn menu chính
+        gameLayer.setVisible(false);          // Ẩn chế độ đơn
         if (!root.getChildren().contains(pvpView.getRoot()))
             root.getChildren().add(pvpView.getRoot()); // Thêm view PvP vào StackPane
         pvpView.getRoot().setVisible(true);
@@ -130,7 +130,7 @@ public class MainView {
         this.onMenuRequested = handler;
     }
 
-    // [UC5.4.1] Setter để GameController đăng ký xử lý yêu cầu PvP
+    // Setter để GameController đăng ký xử lý yêu cầu PvP
     public void setOnPvPLocalRequested(Runnable handler) {
         this.onPvPLocalRequested = handler;
         menuView.setOnPvPLocalRequested(handler); // Chuyển tiếp xuống MenuView

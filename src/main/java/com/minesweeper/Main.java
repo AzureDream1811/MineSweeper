@@ -24,7 +24,7 @@ public class Main extends Application {
         // 3. Stage
         stage.setTitle("Minesweeper");
         stage.setScene(mainView.getScene());
-        stage.setResizable(true);
+        stage.setResizable(false);
         stage.sizeToScene();
         stage.show();
 

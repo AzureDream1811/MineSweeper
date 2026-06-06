@@ -18,9 +18,8 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 /**
- * UC11 — Xem bảng High Score.
- * Dialog hiển thị bảng xếp hạng chế độ Solo và lịch sử PvP.
- * Đọc dữ liệu thẳng từ DB qua ScoreRecordDAO — không phụ thuộc file .properties.
+ * Dialog hiển thị bảng High Score (Best Time) theo từng cấp độ.
+ * Thiết kế hài hòa với dark theme hiện tại của game.
  */
 public class HighScoreView {
 
