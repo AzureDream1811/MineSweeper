@@ -16,7 +16,6 @@ import javafx.util.Duration;
 
 /**
  * Dialog hiển thị kết quả game (Win / Lose).
- * UC_14 — View Game Result (bao gồm thời gian, kỷ lục mới nếu có)
  * Thay thế Alert mặc định bằng popup đẹp hài hòa với dark theme.
  */
 public class GameResultView {

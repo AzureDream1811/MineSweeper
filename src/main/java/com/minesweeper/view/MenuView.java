@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 public class MenuView {
     private final VBox root;
     private Consumer<Difficulty> onDifficultySelected;
-    // [UC5.4.1] Callback khi người chơi nhấn nút "Chơi PvP Cục Bộ"
+    // Callback khi người chơi nhấn nút "Chơi PvP Cục Bộ"
     private Runnable onPvPLocalRequested;
 
     public MenuView() {
@@ -23,7 +23,7 @@ public class MenuView {
         Button btnMedium = createButton("Trung bình (Medium)", Difficulty.MEDIUM);
         Button btnHard   = createButton("Khó (Hard)",          Difficulty.HARD);
 
-        // [UC5.4.1] Nút mở chế độ PvP cục bộ
+        // Nút mở chế độ PvP cục bộ
         Button btnPvP = new Button("⚔ Chơi PvP Cục Bộ");
         btnPvP.setPrefWidth(200);
         btnPvP.setOnAction(e -> {
@@ -48,7 +48,7 @@ public class MenuView {
         this.onDifficultySelected = handler;
     }
 
-    // [UC5.4.1] Setter để GameController đăng ký xử lý yêu cầu PvP
+    // Setter để GameController đăng ký xử lý yêu cầu PvP
     public void setOnPvPLocalRequested(Runnable handler) {
         this.onPvPLocalRequested = handler;
     }
