@@ -36,6 +36,14 @@ public class PvPGameController {
     private GameState stateP1;             // Trạng thái game Player 1
     private GameState stateP2;             // Trạng thái game Player 2
 
+    private boolean p1Started;
+    private boolean p2Started;
+    
+    // Request state
+    private boolean waitingConfirmation = false;
+    private int requestingPlayer = 0;
+    private PvPRequestType pendingRequest = null;
+
     // ── Timer ─────────────────────────────────────────────────
     private final GameTimer timerP1 = new GameTimer(); // Đồng hồ riêng Player 1
     private final GameTimer timerP2 = new GameTimer(); // Đồng hồ riêng Player 2
@@ -51,14 +59,8 @@ public class PvPGameController {
     // Callback để báo MainView khi trận kết thúc (tuỳ chọn mở rộng sau)
     private Runnable onMatchEnd;
 
-    private PvPRequestType pendingRequest;
-    private int requesterPlayer;
-    private boolean waitingConfirmation = false;
-
-    private boolean p1Started = false;
-    private boolean p2Started = false;
     /**
-     * Khởi tạo controller với config từ dialog.
+     * [UC5.4.4] Khởi tạo controller với config từ dialog.
      * Tạo view, sinh board, đăng ký key, bắt đầu trận.
      */
     public PvPGameController(PvPSetupDialog.Config config) {
@@ -133,7 +135,7 @@ public class PvPGameController {
     }
 
     /**
-     * Sinh ngẫu nhiên mine layout dạng boolean[][].
+     * [UC5.4.5] Sinh ngẫu nhiên mine layout dạng boolean[][].
      * Không áp dụng safe-first-click (fair layout trước khi chơi).
      */
     private boolean[][] generateMineLayout(int rows, int cols, int totalMines) {
@@ -151,6 +153,56 @@ public class PvPGameController {
             layout[pos[0]][pos[1]] = true; // Đánh dấu ô có mìn
         }
         return layout;
+    }
+
+    private void requestAction(int player, PvPRequestType type) {
+        if (stateP1 == GameState.WIN || stateP1 == GameState.LOSE) return;
+        
+        requestingPlayer = player;
+        pendingRequest = type;
+        waitingConfirmation = true;
+        
+        String action = switch (type) {
+            case RESET -> "Reset";
+            case PAUSE -> "Pause";
+            case RESUME -> "Resume";
+        };
+        pvpView.showRequest("Player " + player + " muon " + action + ". P" + (player == 1 ? 2 : 1) + " (C/O=Dong y, X/N=Tu choi)");
+        timerP1.pause();
+        timerP2.pause();
+    }
+
+    private void confirmRequest(int player) {
+        if (!waitingConfirmation || player == requestingPlayer) return; 
+        
+        waitingConfirmation = false;
+        switch (pendingRequest) {
+            case RESET -> initMatch();
+            case PAUSE -> {
+                stateP1 = GameState.PAUSED;
+                stateP2 = GameState.PAUSED;
+                pvpView.showRequest("Game Paused");
+                timerP1.pause();
+                timerP2.pause();
+            }
+            case RESUME -> {
+                stateP1 = GameState.PLAYING;
+                stateP2 = GameState.PLAYING;
+                pvpView.showRequest(""); // clear request text
+                timerP1.resume();
+                timerP2.resume();
+            }
+        }
+    }
+
+    private void rejectRequest(int player) {
+        if (!waitingConfirmation || player == requestingPlayer) return;
+        waitingConfirmation = false;
+        pvpView.showRequest("Yeu cau bi tu choi!");
+        if (stateP1 != GameState.PAUSED) {
+            timerP1.resume();
+            timerP2.resume();
+        }
     }
 
     // ── Key Listener ────────────────────────────────────────
@@ -190,11 +242,8 @@ public class PvPGameController {
             case S     -> moveCursorP1( 1,  0); // Xuống
             case A     -> moveCursorP1( 0, -1); // Trái
             case D     -> moveCursorP1( 0,  1); // Phải
-            case SPACE -> revealP1();                   // Mở ô tại cursor P1
-            case F     -> flagP1();                     // Cắm/bỏ cờ tại cursor P1
-            case R -> requestAction(1, PvPRequestType.RESET);
-            case T -> requestAction(1, PvPRequestType.PAUSE);
-            case Y -> requestAction(1, PvPRequestType.RESUME);
+            case SPACE -> revealP1();            // Mở ô tại cursor P1
+            case F     -> flagP1();              // Cắm/bỏ cờ tại cursor P1
 
             // ── Player 2 Controls (Arrow / Enter / P) ───────
             case UP    -> moveCursorP2(-1,  0); // Lên
@@ -235,7 +284,7 @@ public class PvPGameController {
 
     /** Player 1 nhấn Space → mở ô tại cursor */
     private void revealP1() {
-        if (stateP1 != GameState.PVP_SPLIT_START) return; // Không nhận thêm input khi đã kết thúc
+        if (stateP1 != GameState.PVP_SPLIT_START && stateP1 != GameState.PLAYING) return; // Không nhận thêm input khi đã kết thúc
 
         p1Started = true;
 
@@ -250,16 +299,13 @@ public class PvPGameController {
             pvpView.updateCellP1(pos[0], pos[1], boardP1.getCell(pos[0], pos[1]));
         pvpView.updateCellP1(row, col, boardP1.getCell(row, col));
 
-        if (!safe) {
-            handleLoseP1(row, col); // Người chơi 1 thua
-        } else if (boardP1.checkWin()) {
-            handleWinP1(); // Người chơi 1 thắng
-        }
+        // [13.1.1] Hệ thống tiếp nhận trạng thái sau khi một người chơi vừa thực hiện mở ô (revealCell).
+        checkMatchResult(true, safe, row, col);
     }
 
-    /** Player 2 nhấn Enter → mở ô tại cursor */
+    /** [UC5.4.6] Player 2 nhấn Enter → mở ô tại cursor */
     private void revealP2() {
-        if (stateP2 != GameState.PVP_SPLIT_START) return;
+        if (stateP2 != GameState.PVP_SPLIT_START && stateP2 != GameState.PLAYING) return;
 
         p2Started = true;
 
@@ -273,16 +319,13 @@ public class PvPGameController {
             pvpView.updateCellP2(pos[0], pos[1], boardP2.getCell(pos[0], pos[1]));
         pvpView.updateCellP2(row, col, boardP2.getCell(row, col));
 
-        if (!safe) {
-            handleLoseP2(row, col);
-        } else if (boardP2.checkWin()) {
-            handleWinP2();
-        }
+        // [13.1.1] Hệ thống tiếp nhận trạng thái sau khi một người chơi vừa thực hiện mở ô (revealCell).
+        checkMatchResult(false, safe, row, col);
     }
 
     // ── Cắm cờ ──────────────────────────────────────────────
 
-    /** Player 1 nhấn F → cắm/bỏ cờ tại cursor */
+    /** [UC5.4.6] Player 1 nhấn F → cắm/bỏ cờ tại cursor */
     private void flagP1() {
         if (stateP1 != GameState.PVP_SPLIT_START) return;
         if (!p1Started) {
@@ -295,7 +338,7 @@ public class PvPGameController {
         pvpView.updateCellP1(cursor[0], cursor[1], boardP1.getCell(cursor[0], cursor[1]));
     }
 
-    /** Player 2 nhấn P → cắm/bỏ cờ tại cursor */
+    /** [UC5.4.6] Player 2 nhấn P → cắm/bỏ cờ tại cursor */
     private void flagP2() {
         if (stateP2 != GameState.PVP_SPLIT_START) return;
         if (!p2Started) {
@@ -309,115 +352,92 @@ public class PvPGameController {
 
     // ── Xử lý kết quả trận ─────────────────────────────────
 
-    /** Player 1 thắng */
-    private void handleWinP1() {
-        stateP1 = GameState.WIN;
-        timerP1.pause(); // Dừng đồng hồ P1
-    }
+    /**
+     * [UC-13] Check Game Result PvP (Kiểm tra, đối chiếu song song kết quả trận đấu giữa 2 người chơi).
+     * @param isP1   Thao tác vừa rồi là của Player 1 (true) hay Player 2 (false)
+     * @param safe   Trạng thái an toàn sau khi reveal
+     * @param row    Hàng mở cuối cùng (dùng khi nổ mìn)
+     * @param col    Cột mở cuối cùng (dùng khi nổ mìn)
+     */
+    private void checkMatchResult(boolean isP1, boolean safe, int row, int col) {
+        if (stateP1 != GameState.LOSE && stateP1 != GameState.WIN) stateP1 = GameState.PLAYING;
+        if (stateP2 != GameState.LOSE && stateP2 != GameState.WIN) stateP2 = GameState.PLAYING;
 
-    /** Player 2 thắng */
-    private void handleWinP2() {
-        stateP2 = GameState.WIN;
-        timerP2.pause();
-    }
+        if (isP1) {
+            if (!safe) {
+                // 13.1.3: Nếu người vừa thao tác kích nổ mìn, hệ thống chuyển trạng thái sang LOSE nhưng không dừng game ngay; tiến hành đối chiếu.
+                stateP1 = GameState.LOSE;
+                boardP1.revealAllMines();
+                pvpView.revealAllMinesP1(boardP1, row, col);
 
-    /** Player 1 thua (mở trúng mìn) */
-    private void handleLoseP1(int explodedRow, int explodedCol) {
-        stateP1 = GameState.LOSE;
-        timerP1.pause(); // Dừng đồng hồ P1
-        boardP1.revealAllMines();
-        pvpView.revealAllMinesP1(boardP1, explodedRow, explodedCol); // Lật toàn bộ mìn P1
-    }
-
-    /** Player 2 thua (mở trúng mìn) */
-    private void handleLoseP2(int explodedRow, int explodedCol) {
-        stateP2 = GameState.LOSE;
-        timerP2.pause();
-        boardP2.revealAllMines();
-        pvpView.revealAllMinesP2(boardP2, explodedRow, explodedCol);
-    }
-
-    private void requestAction(int player, PvPRequestType type) {
-        if (type == PvPRequestType.PAUSE && stateP1 == GameState.PAUSED) return;
-        if (type == PvPRequestType.RESUME && stateP1 != GameState.PAUSED) return;
-        if (waitingConfirmation) return;
-        requesterPlayer = player;
-        pendingRequest = type;
-        waitingConfirmation = true;
-        if (player == 1) {
-            pvpView.showOverlay(
-                    "Yêu cầu " + type,
-                    "Player 1 yêu cầu " + type + ". Player 2 nhấn O để đồng ý hoặc N để từ chối."
-            );
+                if (stateP2 == GameState.PVP_SPLIT_START || stateP2 == GameState.PLAYING) {
+                    // 13.1.4: Nếu đối thủ vẫn đang trong trạng thái PLAYING, hệ thống xác định đối thủ là người chiến thắng do sống sót lâu hơn.
+                    stateP2 = GameState.WIN;
+                    finishMatch();
+                } else if (stateP2 == GameState.LOSE) {
+                    // 13.2.1: Alternative Flow - Nếu cả hai người chơi cùng kích nổ mìn, hệ thống ghi nhận kết quả là Hòa (DRAW).
+                    finishMatch();
+                }
+            } else if (boardP1.checkWin()) {
+                // 13.1.2: Hệ thống kiểm tra điều kiện dọn sạch mìn. Nếu true, hệ thống lập tức xác định người này thắng tuyệt đối (Win).
+                stateP1 = GameState.WIN;
+                stateP2 = GameState.LOSE;
+                finishMatch();
+            }
         } else {
-            pvpView.showOverlay(
-                    "Yêu cầu " + type,
-                    "Player 2 yêu cầu " + type + ". Player 1 nhấn C để đồng ý hoặc X để từ chối."
-            );
+            if (!safe) {
+                // 13.1.3: Nếu người vừa thao tác kích nổ mìn...
+                stateP2 = GameState.LOSE;
+                boardP2.revealAllMines();
+                pvpView.revealAllMinesP2(boardP2, row, col);
+
+                if (stateP1 == GameState.PVP_SPLIT_START || stateP1 == GameState.PLAYING) {
+                    // 13.1.4: Xác định đối thủ là người chiến thắng do sống sót lâu hơn.
+                    stateP1 = GameState.WIN;
+                    finishMatch();
+                } else if (stateP1 == GameState.LOSE) {
+                    // 13.2.1: Alternative Flow - Hòa.
+                    finishMatch();
+                }
+            } else if (boardP2.checkWin()) {
+                // 13.1.2: Hệ thống lập tức xác định người này thắng tuyệt đối do hoàn thành trước.
+                stateP2 = GameState.WIN;
+                stateP1 = GameState.LOSE;
+                finishMatch();
+            }
         }
     }
 
-    private void confirmRequest(int confirmerPlayer) {
-        if (!waitingConfirmation) return;
-        if (confirmerPlayer == requesterPlayer)
-            return;
-        switch (pendingRequest) {
-            case RESET -> resetMatch();
-            case PAUSE -> pauseMatch();
-            case RESUME -> resumeMatch();
-        }
-        pvpView.hideOverlay();
-        clearRequest();
-    }
-
-    private void rejectRequest(int rejecterPlayer) {
-        if (!waitingConfirmation) return;
-        if (rejecterPlayer == requesterPlayer) return;
-
-        pvpView.hideOverlay();
-        pvpView.showRequest("Yêu cầu bị từ chối");
-        clearRequest();
-    }
-
-    private void clearRequest() {
-
-        waitingConfirmation = false;
-        pendingRequest = null;
-        requesterPlayer = 0;
-    }
-
-    private void resetMatch() {
-
-        initMatch();
-
-        pvpView.showRequest("Trận đấu đã được reset");
-    }
-
-    private void pauseMatch() {
+    private void finishMatch() {
+        // 13.1.5: Hệ thống đóng băng cả 2 bàn cờ, dừng toàn bộ timer và chuyển giao kết quả sang UC-14.
         timerP1.pause();
         timerP2.pause();
-        stateP1 = GameState.PAUSED;
-        stateP2 = GameState.PAUSED;
-        pvpView.getHeaderView().setPauseEmoji(true);
-        pvpView.showRequest("Trận đấu đã tạm dừng");
+
+        int winner = 0; // 0 = Hoà
+        if (stateP1 == GameState.WIN && stateP2 == GameState.LOSE) winner = 1;
+        if (stateP2 == GameState.WIN && stateP1 == GameState.LOSE) winner = 2;
+
+        com.minesweeper.view.GameResultView resultView = new com.minesweeper.view.GameResultView();
+        com.minesweeper.view.GameResultView.Action action = resultView.showPvP(
+                (javafx.stage.Stage) pvpView.getRoot().getScene().getWindow(),
+                winner,
+                player1Name, player2Name,
+                timerP1.getElapsedSeconds(), timerP2.getElapsedSeconds(),
+                boardP1.flagCountProperty().get(), boardP2.flagCountProperty().get()
+        );
+
+        if (action == com.minesweeper.view.GameResultView.Action.RESTART) {
+            initMatch();
+        } else {
+            if (onMatchEnd != null) onMatchEnd.run();
+        }
     }
-
-    private void resumeMatch() {
-        timerP1.resume();
-        timerP2.resume();
-        stateP1 = GameState.PVP_SPLIT_START;
-        stateP2 = GameState.PVP_SPLIT_START;
-        pvpView.getHeaderView().setPauseEmoji(false);
-        pvpView.showRequest("Tiếp tục trận đấu");
-    }
-
-
 
     // ── Getter ──────────────────────────────────────────────
 
     /** Trả về PvPBoardView để MainView nhúng vào scene */
     public PvPBoardView getPvPBoardView() { return pvpView; }
 
-    /** Đăng ký callback khi trận kết thúc */
+    /** Đăng ký callback khi trận kết thúc (mở rộng UC sau) */
     public void setOnMatchEnd(Runnable handler) { this.onMatchEnd = handler; }
 }
