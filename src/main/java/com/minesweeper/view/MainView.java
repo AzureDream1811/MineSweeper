@@ -26,7 +26,7 @@ public class MainView {
     // Callback sau khi dialog kết quả đóng lại
     private Runnable onRestartRequested;
     private Runnable onMenuRequested;
-    // [UC5.4.1] Callback khi người chơi nhấn nút "Chơi PvP Cục Bộ"
+    // [UC5.4.4] Callback khi người chơi nhấn nút "Chơi PvP Cục Bộ"
     private Runnable onPvPLocalRequested;
 
     public MainView(HeaderView headerView, BoardView boardView, ScoreRecord record) {

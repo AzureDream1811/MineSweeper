@@ -10,11 +10,11 @@ import javafx.stage.Stage;
 import javafx.scene.Scene;
 
 /**
- * [UC5.4.2] Pop-up thiết lập cấu hình trận đấu PvP cục bộ.
+ * Pop-up thiết lập cấu hình trận đấu PvP cục bộ.
  * Cho phép người chơi:
  *   - Chọn cấp độ khó chung (Dễ / Trung bình / Khó)
  *   - Nhập tên Player 1 và Player 2
- * [UC5.4.3] Xác nhận bằng nút "Bắt đầu đấu".
+ * Xác nhận bằng nút "Bắt đầu đấu".
  */
 public class PvPSetupDialog {
 
@@ -32,7 +32,7 @@ public class PvPSetupDialog {
     }
 
     /**
-     * [UC5.4.2] Hiển thị dialog cấu hình, chặn luồng UI cho đến khi đóng.
+     * Hiển thị dialog cấu hình, chặn luồng UI cho đến khi đóng.
      * @param ownerStage cửa sổ cha để modal bám vào
      * @return Config nếu xác nhận, null nếu người chơi huỷ
      */
@@ -49,7 +49,7 @@ public class PvPSetupDialog {
         dialog.setTitle("Thiết lập trận PvP Cục Bộ");
         dialog.setResizable(false);
 
-        // [UC5.4.2] Nhóm chọn cấp độ khó bằng ToggleGroup
+        // Nhóm chọn cấp độ khó bằng ToggleGroup
         Label lblDiff = new Label("Cấp độ khó:");
         ToggleGroup diffGroup = new ToggleGroup();
         RadioButton rbEasy   = new RadioButton("Dễ");
@@ -70,7 +70,7 @@ public class PvPSetupDialog {
         HBox diffBox = new HBox(15, rbEasy, rbMedium, rbHard);
         diffBox.setAlignment(Pos.CENTER_LEFT);
 
-        // [UC5.4.2] Ô nhập tên Player 1 và Player 2
+        // Ô nhập tên Player 1 và Player 2
         Label  lblP1   = new Label("Tên Người chơi 1 (Player 1):");
         TextField tfP1 = new TextField();
         tfP1.setPromptText("Player 1"); // Placeholder hiển thị giá trị mặc định
@@ -79,13 +79,13 @@ public class PvPSetupDialog {
         TextField tfP2 = new TextField();
         tfP2.setPromptText("Player 2");
 
-        // [UC5.4.3] Nút "Bắt đầu đấu" xác nhận cấu hình
+        // Nút "Bắt đầu đấu" xác nhận cấu hình
         Button btnStart  = new Button("Bắt đầu đấu ▶");
         Button btnCancel = new Button("Huỷ");
 
         btnStart.setDefaultButton(true); // Enter = nhấn nút này
         btnStart.setOnAction(e -> {
-            // Nếu tên trống → dùng tên mặc định theo UC5.4.2
+            // Nếu tên trống → dùng tên mặc định
             String name1 = tfP1.getText().isBlank() ? "Player 1" : tfP1.getText().trim();
             String name2 = tfP2.getText().isBlank() ? "Player 2" : tfP2.getText().trim();
             result[0] = new Config(chosen[0], name1, name2); // Lưu kết quả

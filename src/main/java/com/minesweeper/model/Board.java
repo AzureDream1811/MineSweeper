@@ -43,13 +43,40 @@ public class Board {
         }
     }
 
+    /**
+     * [UC5.4.5] Tạo Board với mine layout định sẵn (dùng chung cho PvP).
+     * firstClick = false vì mìn đã được đặt sẵn, không cần an toàn click đầu.
+     *
+     * @param rows       số hàng
+     * @param cols       số cột
+     * @param totalMines tổng số mìn
+     * @param mineLayout mảng 2D đánh dấu vị trí mìn (true = có mìn)
+     */
+    public Board(int rows, int cols, int totalMines, boolean[][] mineLayout) {
+        this.rows = rows;
+        this.cols = cols;
+        this.totalMines = totalMines;
+        this.firstClick = false; // Mìn đã được đặt sẵn, bỏ qua bước safe-first-click
+        this.cells = new Cell[rows][cols];
 
+        // Đặt tạo cells và áp dụng layout mìn
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                this.cells[r][c] = new Cell(r, c);
+                if (mineLayout[r][c]) {
+                    this.cells[r][c].setMine(); // Đặt mìn theo layout có sẵn
+                }
+            }
+        }
+        calculateAdjacentMines(); // Tính số mìn kế cận sau khi đặt xong
+    }
 
     // ── Mine Placement ────────────────────────────────────────
 
     /**
      * Đặt mìn ngẫu nhiên trên bàn cờ, đảm bảo ô (safeRow, safeCol) không phải mìn.
      * Cập nhật adjacentMines cho tất cả ô sau khi đặt mìn xong.
+     * <p>
      * Gọi lần đầu tiên khi người chơi click ô đầu tiên — FR-12.
      *
      * @param safeRow hàng của ô đầu tiên được click

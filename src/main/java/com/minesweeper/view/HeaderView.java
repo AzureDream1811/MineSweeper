@@ -47,7 +47,7 @@ public class HeaderView {
             if (onPause != null) onPause.run();
         });
 
-        // Nút High Score (UC_11)
+        // Nút High Score
         highScoreButton = new Button("🏆");
         highScoreButton.getStyleClass().add("highscore-button");
         highScoreButton.setPrefSize(36, 36);
@@ -106,6 +106,9 @@ public class HeaderView {
 
     // ── Binding ───────────────────────────────────────────────
 
+    /**
+     * View Timer: bind số giây để Header tự cập nhật mỗi 1s.
+     */
     public void bindTimer(IntegerProperty secondsProp) {
         timerLabel.textProperty().bind(secondsProp.asString("%03d"));
     }
@@ -128,7 +131,9 @@ public class HeaderView {
         this.onDifficultyChange = handler;
     }
 
-    /** Đăng ký handler khi người chơi nhấn nút High Score (UC_11) */
+    /**
+     * View High Score: đăng ký handler cho nút High Score trên Header.
+     */
     public void setOnHighScore(Runnable handler) {
         this.onHighScore = handler;
     }
