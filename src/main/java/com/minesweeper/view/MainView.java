@@ -33,7 +33,7 @@ public class MainView {
         this.headerView = headerView;
         this.boardView  = boardView;
         menuView = new MenuView();
-        highScoreView = new HighScoreView(record);
+        highScoreView = new HighScoreView();
         gameResultView = new GameResultView();
 
         gameLayer = new VBox(8);
