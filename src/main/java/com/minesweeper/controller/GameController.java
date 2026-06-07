@@ -148,7 +148,7 @@ public class GameController {
 
         // UC-4 - 4.1.4: Controller bind dữ liệu số mìn còn lại tới HeaderView
         // UC-4 - 4.1.5: Tự động cập nhật số lượng mìn còn lại qua Observer Pattern khi cắm/gỡ cờ.
-        // UC-4 - 4.3.1 / 4.3.2 (Exceeding Flag Limit): Hệ thống vẫn tiếp tục cập nhật hiển thị số mìn còn lại (chuyển âm) khi cắm cờ vượt quá giới hạn.
+        // UC-4 - 4.3.1 / 4.3.2 (Exceeding Flag Limit): Do hệ thống không cho đặt cờ vượt quá totalMines, remainingMines luôn nằm trong khoảng 0..totalMines.
         mainView.getHeaderView().bindMineCount(remaining);
     }
 
