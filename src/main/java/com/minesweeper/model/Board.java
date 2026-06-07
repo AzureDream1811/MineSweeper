@@ -280,6 +280,20 @@ public class Board {
         Cell cell = cells[row][col];
         if (!cell.isRevealed()){
             boolean wasFlagged = cell.isFlagged();
+            
+            // UC-1 - 1.1.2: Hệ thống kiểm tra ô chưa mở; tiến hành chuyển đổi trạng thái cờ (toggleFlag).
+            // UC-2 - 2.1.3: Hệ thống gọi toggleFlag để chuyển ô về trạng thái HIDDEN.
+
+            // Kiểm tra điều kiện trước khi cắm/gỡ cờ
+            if (!wasFlagged && flagCount.get() >= totalMines) {
+                // Không cho phép cắm cờ nếu đã đủ số mìn
+                return;
+            }
+            if (wasFlagged && flagCount.get() <= 0) {
+                // Đảm bảo không gỡ cờ khi flagCount = 0 (ngăn âm)
+                return;
+            }
+
             cell.toggleFlag();
             if (!wasFlagged && cell.isFlagged()){
                 flagCount.set(flagCount.get() + 1);

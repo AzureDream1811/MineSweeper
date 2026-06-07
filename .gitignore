@@ -33,3 +33,4 @@ installer-input/
 custom-runtime/
 /javafx/
 /META-INF/
+src/main/java/com/minesweeper/data/DBConnection.java
