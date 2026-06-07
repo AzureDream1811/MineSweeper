@@ -327,7 +327,7 @@ public class PvPGameController {
 
     /** [UC5.4.6] Player 1 nhấn F → cắm/bỏ cờ tại cursor */
     private void flagP1() {
-        if (stateP1 != GameState.PVP_SPLIT_START) return;
+        if (stateP1 != GameState.PVP_SPLIT_START && stateP1 != GameState.PLAYING) return;
         if (!p1Started) {
             pvpView.showRequest("Player 1 phải mở ô đầu tiên trước khi cắm cờ");
             return;
@@ -340,7 +340,7 @@ public class PvPGameController {
 
     /** [UC5.4.6] Player 2 nhấn P → cắm/bỏ cờ tại cursor */
     private void flagP2() {
-        if (stateP2 != GameState.PVP_SPLIT_START) return;
+        if (stateP2 != GameState.PVP_SPLIT_START && stateP2 != GameState.PLAYING) return;
         if (!p2Started) {
             pvpView.showRequest("Player 2 phải mở ô đầu tiên trước khi cắm cờ");
             return;
