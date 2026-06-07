@@ -298,24 +298,6 @@ class BoardTest {
                 "Cell should be flagged");
     }
 
-    @Test
-    @DisplayName("TC_02_01 - Flag removal should decrease flagCount when valid")
-    void testFlagRemovalDecreasesFlagCount() {
-        // Create custom board with mines
-        boolean[][] layout = new boolean[10][10];
-        layout[0][0] = true;
-        layout[5][5] = true;
-        Board customBoard = new Board(10, 10, 2, layout);
-
-        customBoard.toggleFlag(1, 1); // Place flag
-        assertEquals(1, customBoard.getFlagCount());
-
-        customBoard.toggleFlag(1, 1); // Remove flag
-        assertEquals(0, customBoard.getFlagCount(),
-                "Flag count should decrease to 0 after removing flag");
-        assertFalse(customBoard.getCell(1, 1).isFlagged(),
-                "Cell should not be flagged");
-    }
 
     @Test
     @DisplayName("TC_01_02 - Cannot place more flags than totalMines")
@@ -344,33 +326,6 @@ class BoardTest {
                 "Flag count should not exceed totalMines");
     }
 
-    @Test
-    @DisplayName("TC_02_02 - Cannot remove flags when flagCount is 0 (prevent negative)")
-    void testCannotGoNegativeFlagCount() {
-        // Create custom board
-        boolean[][] layout = new boolean[10][10];
-        layout[0][0] = true;
-        Board customBoard = new Board(10, 10, 1, layout);
-
-        assertEquals(0, customBoard.getFlagCount(),
-                "Initial flag count should be 0");
-
-        // First place one flag
-        customBoard.toggleFlag(1, 1);
-        assertEquals(1, customBoard.getFlagCount(),
-                "Flag count should be 1 after placing");
-
-        // Remove the flag
-        customBoard.toggleFlag(1, 1);
-        assertEquals(0, customBoard.getFlagCount(),
-                "Flag count should be 0 after removal");
-
-        // Try to toggle on an unflagged cell when flagCount = 0
-        // This should place a flag (not remove), since cell is unflagged
-        customBoard.toggleFlag(2, 2);
-        assertEquals(1, customBoard.getFlagCount(),
-                "Should be able to place flag even when flagCount was 0");
-    }
 
     @Test
     @DisplayName("TC_01_03 - Toggle flag multiple times maintains consistency")
@@ -423,5 +378,53 @@ class BoardTest {
         customBoard.toggleFlag(1, 1); // Remove flag
         assertEquals(0, customBoard.flagCountProperty().get(),
                 "Flag count property should reflect removed flag");
+    }
+
+
+    @Test
+    @DisplayName("TC_02_01 - Flag removal should decrease flagCount when valid")
+    void testFlagRemovalDecreasesFlagCount() {
+        // Create custom board with mines
+        boolean[][] layout = new boolean[10][10];
+        layout[0][0] = true;
+        layout[5][5] = true;
+        Board customBoard = new Board(10, 10, 2, layout);
+
+        customBoard.toggleFlag(1, 1); // Place flag
+        assertEquals(1, customBoard.getFlagCount());
+
+        customBoard.toggleFlag(1, 1); // Remove flag
+        assertEquals(0, customBoard.getFlagCount(),
+                "Flag count should decrease to 0 after removing flag");
+        assertFalse(customBoard.getCell(1, 1).isFlagged(),
+                "Cell should not be flagged");
+    }
+
+    @Test
+    @DisplayName("TC_02_02 - Cannot remove flags when flagCount is 0 (prevent negative)")
+    void testCannotGoNegativeFlagCount() {
+        // Create custom board
+        boolean[][] layout = new boolean[10][10];
+        layout[0][0] = true;
+        Board customBoard = new Board(10, 10, 1, layout);
+
+        assertEquals(0, customBoard.getFlagCount(),
+                "Initial flag count should be 0");
+
+        // First place one flag
+        customBoard.toggleFlag(1, 1);
+        assertEquals(1, customBoard.getFlagCount(),
+                "Flag count should be 1 after placing");
+
+        // Remove the flag
+        customBoard.toggleFlag(1, 1);
+        assertEquals(0, customBoard.getFlagCount(),
+                "Flag count should be 0 after removal");
+
+        // Try to toggle on an unflagged cell when flagCount = 0
+        // This should place a flag (not remove), since cell is unflagged
+        customBoard.toggleFlag(2, 2);
+        assertEquals(1, customBoard.getFlagCount(),
+                "Should be able to place flag even when flagCount was 0");
     }
 }
