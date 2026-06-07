@@ -316,6 +316,17 @@ public class Board {
             
             // UC-1 - 1.1.2: Hệ thống kiểm tra ô chưa mở; tiến hành chuyển đổi trạng thái cờ (toggleFlag).
             // UC-2 - 2.1.3: Hệ thống gọi toggleFlag để chuyển ô về trạng thái HIDDEN.
+
+            // Kiểm tra điều kiện trước khi cắm/gỡ cờ
+            if (!wasFlagged && flagCount.get() >= totalMines) {
+                // Không cho phép cắm cờ nếu đã đủ số mìn
+                return;
+            }
+            if (wasFlagged && flagCount.get() <= 0) {
+                // Đảm bảo không gỡ cờ khi flagCount = 0 (ngăn âm)
+                return;
+            }
+
             cell.toggleFlag();
             
             // UC-1 - 1.1.3 / UC-2 - 2.1.4: Cập nhật giá trị flagCount.
