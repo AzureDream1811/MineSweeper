@@ -64,7 +64,7 @@ public class PvPGameController {
      * [UC5.4.4] Khởi tạo controller với config từ dialog.
      */
     public PvPGameController(PvPSetupDialog.Config config) {
-        this.difficulty  = config.difficulty;
+        this.difficulty = config.difficulty;
         this.player1Name = config.player1Name;
         this.player2Name = config.player2Name;
 
@@ -76,8 +76,8 @@ public class PvPGameController {
     // ── Khởi tạo trận ──────────────────────────────────────
 
     public void initMatch() {
-        int rows  = difficulty.getRows();
-        int cols  = difficulty.getCols();
+        int rows = difficulty.getRows();
+        int cols = difficulty.getCols();
         int mines = difficulty.getMines();
 
         boolean[][] sharedLayout = generateMineLayout(rows, cols, mines);
@@ -126,7 +126,7 @@ public class PvPGameController {
         List<int[]> allCells = new ArrayList<>(rows * cols);
         for (int r = 0; r < rows; r++)
             for (int c = 0; c < cols; c++)
-                allCells.add(new int[]{ r, c });
+                allCells.add(new int[]{r, c});
 
         Collections.shuffle(allCells, new Random());
 
@@ -142,7 +142,8 @@ public class PvPGameController {
 
     private void requestAction(int player, PvPRequestType type) {
         // Nếu game đã kết thúc thắng thua toàn cục thì không nhận lệnh hệ thống nữa
-        if (stateP1 == GameState.WIN || stateP1 == GameState.LOSE || stateP2 == GameState.WIN || stateP2 == GameState.LOSE) return;
+        if (stateP1 == GameState.WIN || stateP1 == GameState.LOSE || stateP2 == GameState.WIN || stateP2 == GameState.LOSE)
+            return;
 
         // UC-7 - 7.6.1: Một người chơi nhấn nút Pause trên Header hoặc nhấn phím tắt yêu cầu Pause (T / NUMPAD2).
         // UC-7 - 7.6.2: Hệ thống nhận diện trạng thái hiện tại của cả hai người chơi đã là PAUSED (stateP1 == GameState.PAUSED).
@@ -274,10 +275,10 @@ public class PvPGameController {
         // UC-6 - 6.4.1 / UC-7 - 7.4.1 / UC-8 - 8.4.1: Người chơi còn lại nhấn phím từ chối (Player 1 nhấn X để từ chối Player 2).
         // UC-6 - 6.4.2 / UC-7 - 7.4.2 / UC-8 - 8.4.2: Hệ thống kiểm tra thấy người thực hiện thao tác hợp lệ (rejecterPlayer != requesterPlayer).
         waitingConfirmation = false;
-        
+
         // UC-6 - 6.4.3 / UC-7 - 7.4.3 / UC-8 - 8.4.3: Hệ thống ẩn màn hình Overlay yêu cầu xác nhận.
         pvpView.hideOverlay();
-        
+
         // UC-6 - 6.4.4 / UC-7 - 7.4.4 / UC-8 - 8.4.4: Hệ thống hiển thị thông báo: "Yêu cầu bị từ chối".
         pvpView.showRequest("Yêu cầu bị từ chối!");
 
@@ -310,7 +311,8 @@ public class PvPGameController {
                 case X -> rejectRequest(1);
                 case O -> confirmRequest(2);
                 case N -> rejectRequest(2);
-                default -> {}
+                default -> {
+                }
             }
             e.consume();
             return;
@@ -319,23 +321,23 @@ public class PvPGameController {
 
         switch (key) {
             // Player 1 Controls
-            case W     -> moveCursorP1(-1,  0);
-            case S     -> moveCursorP1( 1,  0);
-            case A     -> moveCursorP1( 0, -1);
-            case D     -> moveCursorP1( 0,  1);
+            case W -> moveCursorP1(-1, 0);
+            case S -> moveCursorP1(1, 0);
+            case A -> moveCursorP1(0, -1);
+            case D -> moveCursorP1(0, 1);
             case SPACE -> revealP1();
-            case F     -> flagP1();
-            case R     -> requestAction(1, PvPRequestType.RESET);
-            case T     -> requestAction(1, PvPRequestType.PAUSE);
-            case Y     -> requestAction(1, PvPRequestType.RESUME);
+            case F -> flagP1();
+            case R -> requestAction(1, PvPRequestType.RESET);
+            case T -> requestAction(1, PvPRequestType.PAUSE);
+            case Y -> requestAction(1, PvPRequestType.RESUME);
 
             // Player 2 Controls
-            case UP    -> moveCursorP2(-1,  0);
-            case DOWN  -> moveCursorP2( 1,  0);
-            case LEFT  -> moveCursorP2( 0, -1);
-            case RIGHT -> moveCursorP2( 0,  1);
+            case UP -> moveCursorP2(-1, 0);
+            case DOWN -> moveCursorP2(1, 0);
+            case LEFT -> moveCursorP2(0, -1);
+            case RIGHT -> moveCursorP2(0, 1);
             case ENTER -> revealP2();
-            case P     -> flagP2();
+            case P -> flagP2();
             case NUMPAD1 -> requestAction(2, PvPRequestType.RESET);
             case NUMPAD2 -> requestAction(2, PvPRequestType.PAUSE);
             case NUMPAD3 -> requestAction(2, PvPRequestType.RESUME);
@@ -347,8 +349,13 @@ public class PvPGameController {
         }
     }
 
-    private void moveCursorP1(int dr, int dc) { pvpView.moveP1Cursor(dr, dc); }
-    private void moveCursorP2(int dr, int dc) { pvpView.moveP2Cursor(dr, dc); }
+    private void moveCursorP1(int dr, int dc) {
+        pvpView.moveP1Cursor(dr, dc);
+    }
+
+    private void moveCursorP2(int dr, int dc) {
+        pvpView.moveP2Cursor(dr, dc);
+    }
 
     // ── Mở ô ────────────────────────────────────────────────
 
@@ -390,7 +397,10 @@ public class PvPGameController {
 
     private void flagP1() {
         if (stateP1 != GameState.PVP_SPLIT_START && stateP1 != GameState.PLAYING) return;
-        if (!p1Started) { pvpView.showRequest("Player 1 phải mở ô đầu tiên trước khi cắm cờ"); return; }
+        if (!p1Started) {
+            pvpView.showRequest("Player 1 phải mở ô đầu tiên trước khi cắm cờ");
+            return;
+        }
         int[] cursor = pvpView.getCursorP1();
         boardP1.toggleFlag(cursor[0], cursor[1]);
         pvpView.updateCellP1(cursor[0], cursor[1], boardP1.getCell(cursor[0], cursor[1]));
@@ -398,7 +408,10 @@ public class PvPGameController {
 
     private void flagP2() {
         if (stateP2 != GameState.PVP_SPLIT_START && stateP2 != GameState.PLAYING) return;
-        if (!p2Started) { pvpView.showRequest("Player 2 phải mở ô đầu tiên trước khi cắm cờ"); return; }
+        if (!p2Started) {
+            pvpView.showRequest("Player 2 phải mở ô đầu tiên trước khi cắm cờ");
+            return;
+        }
         int[] cursor = pvpView.getCursorP2();
         boardP2.toggleFlag(cursor[0], cursor[1]);
         pvpView.updateCellP2(cursor[0], cursor[1], boardP2.getCell(cursor[0], cursor[1]));
@@ -406,7 +419,7 @@ public class PvPGameController {
 
     // ── Logic Kiểm tra kết quả Trận đấu ──
 
-    private void checkMatchResult(boolean isP1, boolean safe, int row, int col) {
+    void checkMatchResult(boolean isP1, boolean safe, int row, int col) {
         if (stateP1 == GameState.PVP_SPLIT_START) stateP1 = GameState.PLAYING;
         if (stateP2 == GameState.PVP_SPLIT_START) stateP2 = GameState.PLAYING;
 
@@ -448,8 +461,7 @@ public class PvPGameController {
                     finishMatch(2);
                 }
             }
-        }
-        else if (activePlayersCount == 1) {
+        } else if (activePlayersCount == 1) {
             if (isP1 && stateP1 == GameState.PLAYING) {
                 if (!safe) {
                     stateP1 = GameState.LOSE;
@@ -476,7 +488,7 @@ public class PvPGameController {
         }
     }
 
-    private void showIntermediateOverlay(int winnerPlayer) {
+    void showIntermediateOverlay(int winnerPlayer) {
         timerP1.pause();
         timerP2.pause();
 
@@ -495,7 +507,7 @@ public class PvPGameController {
         requestingPlayer = (winnerPlayer == 1) ? 2 : 1;
     }
 
-    private void showSinglePlayerLoseOverlay(int player) {
+    void showSinglePlayerLoseOverlay(int player) {
         String name = (player == 1) ? player1Name : player2Name;
         pvpView.showOverlay(
                 name + " ĐÃ DẬM MÌN VÀ THUA CUỘC!",
@@ -508,11 +520,15 @@ public class PvPGameController {
         requestingPlayer = player;
     }
 
-    private void finishMatch(int winner) {
+    protected GameResultView createGameResultView() {
+        return new GameResultView();
+    }
+
+    void finishMatch(int winner) {
         timerP1.pause();
         timerP2.pause();
 
-        GameResultView resultView = new GameResultView();
+        GameResultView resultView = createGameResultView();
         GameResultView.Action action = resultView.showPvP(
                 (Stage) pvpView.getRoot().getScene().getWindow(),
                 winner,
@@ -530,6 +546,11 @@ public class PvPGameController {
 
     // ── Getter ──────────────────────────────────────────────
 
-    public PvPBoardView getPvPBoardView() { return pvpView; }
-    public void setOnMatchEnd(Runnable handler) { this.onMatchEnd = handler; }
+    public PvPBoardView getPvPBoardView() {
+        return pvpView;
+    }
+
+    public void setOnMatchEnd(Runnable handler) {
+        this.onMatchEnd = handler;
+    }
 }
