@@ -144,10 +144,18 @@ public class PvPGameController {
         // Nếu game đã kết thúc thắng thua toàn cục thì không nhận lệnh hệ thống nữa
         if (stateP1 == GameState.WIN || stateP1 == GameState.LOSE || stateP2 == GameState.WIN || stateP2 == GameState.LOSE) return;
 
-        // Đang tạm dừng rồi mà cố tình bấm phím Pause nữa thì bỏ qua
+        // UC-7 - 7.6.1: Một người chơi nhấn nút Pause trên Header hoặc nhấn phím tắt yêu cầu Pause (T / NUMPAD2).
+        // UC-7 - 7.6.2: Hệ thống nhận diện trạng thái hiện tại của cả hai người chơi đã là PAUSED (stateP1 == GameState.PAUSED).
+        // UC-7 - 7.6.3: Hệ thống bỏ qua thao tác, không hiển thị Overlay và không làm thay đổi trạng thái trận đấu.
         if (type == PvPRequestType.PAUSE && stateP1 == GameState.PAUSED) return;
-        // Đang chơi bình thường mà cố tình bấm phím Resume nữa thì bỏ qua
+        // UC-8 - 8.6.1: Một người chơi nhấn nút Resume trên Header hoặc phím tắt yêu cầu Resume (Y / NUMPAD3).
+        // UC-8 - 8.6.2: Hệ thống kiểm tra thấy trạng thái hiện tại không phải là tạm dừng (stateP1 != GameState.PAUSED).
+        // UC-8 - 8.6.3: Hệ thống bỏ qua thao tác, không hiển thị Overlay và giữ nguyên trạng thái chơi hiện tại.
         if (type == PvPRequestType.RESUME && stateP1 != GameState.PAUSED) return;
+
+        // UC-6 - 6.6.1 / UC-7 - 7.7.1 / UC-8 - 8.7.1: Một người chơi gửi yêu cầu Reset / Pause / Resume.
+        // UC-6 - 6.6.2 / UC-7 - 7.7.2 / UC-8 - 8.7.2: Hệ thống phát hiện waitingConfirmation == true.
+        // UC-6 - 6.6.3 / UC-7 - 7.7.3 / UC-8 - 8.7.3: Hệ thống bỏ qua yêu cầu mới, duy trì Overlay và yêu cầu chờ xác nhận ban đầu.
         if (waitingConfirmation) return;
 
         requestingPlayer = player;
@@ -201,6 +209,9 @@ public class PvPGameController {
         }
 
         // LUỒNG XỬ LÝ 3: Các xử lý hệ thống khi đủ 2 người chơi bình thường
+        // UC-6 - 6.5.1 / UC-7 - 7.5.1 / UC-8 - 8.5.1: Người gửi yêu cầu tự nhấn phím xác nhận (ví dụ: Player 1 nhấn C để xác nhận yêu cầu của chính mình).
+        // UC-6 - 6.5.2 / UC-7 - 7.5.2 / UC-8 - 8.5.2: Hệ thống nhận diện người thực hiện thao tác trùng với người gửi yêu cầu ban đầu (confirmerPlayer == requesterPlayer).
+        // UC-6 - 6.5.3 / UC-7 - 7.5.3 / UC-8 - 8.5.3: Hệ thống bỏ qua thao tác đó, không thay đổi trạng thái và tiếp tục hiển thị Overlay chờ xác nhận.
         if (player == requestingPlayer) return;
 
         waitingConfirmation = false;
@@ -255,9 +266,19 @@ public class PvPGameController {
         }
 
         // LUỒNG XỬ LÝ 3: Từ chối các lệnh Pause/Reset thông thường khi game đang chạy
+        // UC-6 - 6.5.1 / UC-7 - 7.5.1 / UC-8 - 8.5.1: Người gửi yêu cầu tự nhấn phím từ chối (ví dụ: Player 1 nhấn X để từ chối yêu cầu của chính mình).
+        // UC-6 - 6.5.2 / UC-7 - 7.5.2 / UC-8 - 8.5.2: Hệ thống nhận diện trùng lặp người thực hiện.
+        // UC-6 - 6.5.3 / UC-7 - 7.5.3 / UC-8 - 8.5.3: Hệ thống bỏ qua thao tác, tiếp tục hiển thị Overlay chờ đối thủ xác nhận.
         if (player == requestingPlayer) return;
+
+        // UC-6 - 6.4.1 / UC-7 - 7.4.1 / UC-8 - 8.4.1: Người chơi còn lại nhấn phím từ chối (Player 1 nhấn X để từ chối Player 2).
+        // UC-6 - 6.4.2 / UC-7 - 7.4.2 / UC-8 - 8.4.2: Hệ thống kiểm tra thấy người thực hiện thao tác hợp lệ (rejecterPlayer != requesterPlayer).
         waitingConfirmation = false;
+        
+        // UC-6 - 6.4.3 / UC-7 - 7.4.3 / UC-8 - 8.4.3: Hệ thống ẩn màn hình Overlay yêu cầu xác nhận.
         pvpView.hideOverlay();
+        
+        // UC-6 - 6.4.4 / UC-7 - 7.4.4 / UC-8 - 8.4.4: Hệ thống hiển thị thông báo: "Yêu cầu bị từ chối".
         pvpView.showRequest("Yêu cầu bị từ chối!");
 
         // Nếu từ chối lệnh Tạm dừng/Reset, game phải chạy tiếp tục ngay lập tức
@@ -265,6 +286,7 @@ public class PvPGameController {
             timerP1.resume();
             timerP2.resume();
         }
+        // UC-6 - 6.4.5 / UC-7 - 7.4.5 / UC-8 - 8.4.5: Hệ thống đặt lại trạng thái chờ xác nhận. Trận đấu tiếp tục giữ nguyên trạng thái tạm dừng (PAUSED).
         clearRequestVariables();
     }
 
