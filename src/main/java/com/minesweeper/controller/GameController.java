@@ -159,7 +159,7 @@ public class GameController {
         // UC-4 - 4.1.0 / 4.1.1: Khi người chơi bắt đầu ván mới, gọi BoardFactory tạo board mới theo độ khó
         board = BoardFactory.createBoard(difficulty);
 
-        // UC-5 - 5.1.6 / UC-6 - 6.1.6: Hệ thống chuyển/ghi nhận trạng thái trò chơi là IDLE (chờ click đầu tiên).
+        // UC-5 - 5.1.6 / UC-6 - 6.1.5: Hệ thống chuyển trạng thái trò chơi về IDLE (chờ lượt click đầu tiên).
         gameState = GameState.IDLE;
 
         // UC-6 - 6.1.2: Hệ thống xóa trạng thái bàn cờ hiện tại, dừng và đặt lại bộ đếm thời gian và mìn.
@@ -171,7 +171,7 @@ public class GameController {
         mainView.getBoardView().build(board.getRows(), board.getCols());
         bindProperties();
 
-        // UC-5 - 5.1.7 / UC-6 - 6.1.7: Hệ thống hiển thị bàn cờ mới được làm mới hoàn toàn, sẵn sàng chơi.
+        // UC-5 - 5.1.7 / UC-6 - 6.1.6: Hệ thống hiển thị bàn cờ mới đã được làm mới hoàn toàn.
         mainView.getHeaderView().setResetEmoji("🙂");
         mainView.getHeaderView().showBestTime(record.getBestTime(difficulty));
 
@@ -181,12 +181,18 @@ public class GameController {
     }
 
     public void reset() {
-        // UC-6 - 6.2.1 / 6.2.2 / 6.2.3 / 6.2.4 (Handling Reset During IDLE State):
-        // Nếu nhấn Reset khi trò chơi đang ở trạng thái IDLE, hệ thống nhận biết và vẫn thực hiện reset bình thường.
-        // UC-6 - 6.3.1 / 6.3.2 / 6.3.3 / 6.3.4 (Handling Reset During WIN or LOSE State):
-        // Nếu ván chơi kết thúc (WIN/LOSE), hệ thống tiếp tục cho phép reset và bắt đầu từ bước 6.1.2.
+        // UC-6 - 6.1.0: Người chơi đang ở màn hình chơi game chính. Hệ thống ghi nhận người dùng ở trạng thái PLAYING (hoặc kết thúc).
+        // UC-6 - 6.2.1: Người chơi nhấn Reset khi trò chơi đang ở trạng thái IDLE.
+        // UC-6 - 6.2.2: Hệ thống nhận diện trạng thái hiện tại là IDLE.
+        // UC-6 - 6.2.3: Hệ thống vẫn thực hiện reset bình thường: xóa bàn cờ hiện tại và khởi tạo lại với cùng tham số.
+        // UC-6 - 6.2.4: Hệ thống hiển thị bàn cờ mới ở trạng thái IDLE, không có thay đổi về mặt trải nghiệm người dùng.
 
-        // UC-6 - 6.1.3: Hệ thống giữ nguyên các thông số cũ để khởi tạo lại bàn cờ mới.
+        // UC-6 - 6.3.1: Người chơi nhấn Reset sau khi ván chơi kết thúc (trạng thái WIN hoặc LOSE).
+        // UC-6 - 6.3.2: Hệ thống nhận diện trạng thái hiện tại là WIN hoặc LOSE.
+        // UC-6 - 6.3.3: Hệ thống ẩn màn hình kết quả (result overlay) nếu đang hiển thị.
+        // UC-6 - 6.3.4: Hệ thống tiếp tục thực hiện reset từ bước 6.1.2 của Standard Flow.
+
+        // UC-6 - 6.1.3: Hệ thống giữ nguyên các thông số cũ (Size, Mine Count) để khởi tạo lại bàn cờ mới.
         newGame();
     }
 
@@ -208,11 +214,18 @@ public class GameController {
     }
 
     public void resume() {
+        // UC-8 - 8.1.0: Người dùng ở màn hình menu hoặc màn hình gameplay và trò chơi đang ở trạng thái PAUSED.
+        
+        // UC-8 - 8.2.1: Người chơi nhấp nút Resume/Play khi trò chơi đang ở trạng thái PLAYING (không bị pause).
+        // UC-8 - 8.2.2: Hệ thống kiểm tra trạng thái hiện tại và xác nhận không phải PAUSED.
+        // UC-8 - 8.2.3: Hệ thống bỏ qua thao tác, không có thay đổi nào xảy ra với trạng thái hoặc giao diện.
+        
+        // UC-8 - 8.3.1: Người chơi nhấp nút Resume game ở màn hình menu.
+        // UC-8 - 8.3.2: Hệ thống kiểm tra dữ liệu lưu trữ của ván gần nhất.
+        // UC-8 - 8.3.3: Nếu có game ở trạng thái PAUSED gần nhất, hệ thống phục hồi toàn bộ trạng thái bàn cờ và hiện màn hình gameplay tại thời điểm đó.
+        // UC-8 - 8.3.4: Hệ thống tiếp tục thực hiện từ bước 8.1.3 trong luồng chuẩn trước đó.
+        
         // UC-8 - 8.1.2: Hệ thống xác nhận trạng thái trò chơi hiện tại là PAUSED.
-        // UC-8 - 8.2.1 / 8.2.2 / 8.2.3 (Handling Resume During PLAYING State):
-        // Nếu không phải PAUSED (đang PLAYING), bỏ qua thao tác và không có thay đổi nào xảy ra.
-        // UC-8 - 8.3.1 / 8.3.2 / 8.3.3 (Resume Game from Main Menu):
-        // Nếu đang ở IDLE, WIN hoặc LOSE, bỏ qua thao tác vì không phải PAUSED.
         if (gameState != GameState.PAUSED) return;
 
         // UC-8 - 8.1.3: Hệ thống kích hoạt lại bộ đếm thời gian, chạy tiếp từ thời điểm đã ghi nhận trước đó.
@@ -221,7 +234,7 @@ public class GameController {
         // UC-8 - 8.1.6: Hệ thống ghi nhận trạng thái trò chơi trở lại là PLAYING.
         gameState = GameState.PLAYING;
 
-        // UC-8 - 8.1.4: Hệ thống mở lại (re-enable) tất cả các tương tác trên bàn cờ.
+        // UC-8 - 8.1.4: Hệ thống mở lại (re-enable) tất cả các tương tác trên bàn cờ, cho phép mở ô và cắm cờ.
         mainView.setDisabled(false);
 
         // UC-8 - 8.1.5: Hệ thống chuyển biểu tượng nút bấm quay lại hình Pause.
