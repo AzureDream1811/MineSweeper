@@ -331,7 +331,7 @@ public class GameController {
         // UC-1 - 1.3.1 / UC-2 - 2.3.1: Người chơi click chuột phải khi game ở trạng thái PAUSED, WIN hoặc LOSE.
         // UC-1 - 1.3.2 / UC-2 - 2.3.2: Hệ thống nhận diện trạng thái không cho phép tương tác.
         // UC-1 - 1.3.3 / UC-2 - 2.3.3: Hệ thống bỏ qua thao tác và không cập nhật trạng thái trò chơi.
-        if (gameState != GameState.PLAYING) return;
+        if (gameState != GameState.PLAYING && gameState != GameState.IDLE) return;
 
         // UC-1 - 1.1.0 / UC-2 - 2.1.0: Người chơi click chuột phải vào ô.
         // UC-1 - 1.1.1 / UC-2 - 2.1.1: Hệ thống xác định tọa độ ô.
