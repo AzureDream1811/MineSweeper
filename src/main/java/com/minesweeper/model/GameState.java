@@ -14,5 +14,8 @@ public enum GameState {
     WIN,
 
     /** Người chơi thua (mở trúng mìn) — FR-17 */
-    LOSE
+    LOSE,
+
+    /** Chế độ PvP cục bộ đang chạy */
+    PVP_SPLIT_START
 }

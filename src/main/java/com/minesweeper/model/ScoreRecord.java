@@ -15,31 +15,14 @@ import java.util.Map;
  * Kỷ lục được lưu vào file cục bộ và tải lại mỗi khi ứng dụng khởi động.
  * FR-07
  * </p>
- *
- * <pre>
- * // Cách sử dụng:
- * ScoreRecord record = ScoreRecord.getInstance();
- * int best = record.getBestTime(Difficulty.EASY);
- * record.update(Difficulty.EASY, 42);
- * </pre>
  */
 @SuppressWarnings("unused")
 public class ScoreRecord {
 
     // ── Singleton ─────────────────────────────────────────────
 
-    /**
-     * Instance duy nhất của ScoreRecord (gạch chân = static trong UML).
-     * Khởi tạo lazy — chỉ tạo khi lần đầu gọi {@link #getInstance()}.
-     */
     private static ScoreRecord instance;
 
-    /**
-     * Lấy instance duy nhất của ScoreRecord.
-     * Thread-safe với synchronized — đảm bảo không tạo 2 instance trong môi trường đa luồng.
-     *
-     * @return instance duy nhất
-     */
     public static synchronized ScoreRecord getInstance() {
         if (instance == null) {
             instance = new ScoreRecord();
@@ -47,84 +30,87 @@ public class ScoreRecord {
         return instance;
     }
 
-    /**
-     * Constructor private — ngăn bên ngoài gọi {@code new ScoreRecord()}.
-     * Đây là ràng buộc cốt lõi của Singleton pattern.
-     */
     private ScoreRecord() {
         bestTimes = new HashMap<>();
-        // TODO: gọi load() để đọc kỷ lục từ file nếu có
+        load(); // Tải kỷ lục từ file khi khởi tạo
     }
 
     // ── Fields ────────────────────────────────────────────────
 
-    /**
-     * Map lưu kỷ lục thời gian (giây) cho từng cấp độ khó.
-     * Key: Difficulty, Value: thời gian tốt nhất (giây).
-     * Nếu chưa có kỷ lục cho một cấp độ → không có entry trong map.
-     */
+    /** Map lưu kỷ lục (giây) cho từng difficulty */
     private final Map<Difficulty, Integer> bestTimes;
 
-    /** Tên file dùng để lưu/đọc kỷ lục */
-    private static final String SAVE_FILE = "scores.dat";
+    /** File lưu kỷ lục */
+    private static final String SAVE_FILE = "scores.properties";
 
     // ── Public API ────────────────────────────────────────────
 
     /**
-     * Lấy kỷ lục của một cấp độ khó.
-     * FR-07, UR-13
-     *
-     * @param difficulty cấp độ khó cần truy vấn
-     * @return thời gian tốt nhất (giây), hoặc {@code Integer.MAX_VALUE} nếu chưa có kỷ lục
+     * Lấy kỷ lục của một cấp độ khó. FR-07
+     * @return thời gian tốt nhất (giây), hoặc {@code Integer.MAX_VALUE} nếu chưa có
      */
     public int getBestTime(Difficulty difficulty) {
-        // TODO: return bestTimes.getOrDefault(difficulty, Integer.MAX_VALUE)
-        return Integer.MAX_VALUE;
+        return bestTimes.getOrDefault(difficulty, Integer.MAX_VALUE);
     }
 
     /**
-     * Cập nhật kỷ lục nếu thời gian mới tốt hơn thời gian hiện tại.
-     * Nếu được cập nhật → gọi {@link #save()} tự động.
-     * FR-07
-     *
-     * @param difficulty cấp độ khó
-     * @param timeSeconds thời gian vừa hoàn thành (giây)
-     * @return true nếu đây là kỷ lục mới, false nếu không
+     * Cập nhật kỷ lục nếu thời gian mới tốt hơn. FR-07
+     * @return true nếu đây là kỷ lục mới
      */
     public boolean update(Difficulty difficulty, int timeSeconds) {
-        // TODO: so sánh với getBestTime(), nếu tốt hơn → put vào map và save()
+        int current = getBestTime(difficulty);
+        if (timeSeconds < current) {
+            bestTimes.put(difficulty, timeSeconds);
+            save();
+            return true;
+        }
         return false;
     }
 
-    /**
-     * Kiểm tra xem đã có kỷ lục cho cấp độ này chưa.
-     *
-     * @param difficulty cấp độ khó
-     * @return true nếu đã có kỷ lục
-     */
+    /** Kiểm tra đã có kỷ lục cho cấp độ này chưa */
     public boolean hasRecord(Difficulty difficulty) {
-        // TODO: return bestTimes.containsKey(difficulty)
-        return false;
+        return bestTimes.containsKey(difficulty);
     }
 
     // ── Persistence ───────────────────────────────────────────
 
     /**
-     * Đọc kỷ lục từ file {@value #SAVE_FILE} vào {@code bestTimes}.
-     * Gọi trong constructor khi khởi tạo lần đầu.
-     * FR-07
+     * Đọc kỷ lục từ file scores.properties vào map. FR-07
      */
     public void load() {
-        // TODO: dùng ObjectInputStream hoặc Properties để đọc file
-        //       nếu file không tồn tại thì bỏ qua (kỷ lục trống)
+        java.util.Properties props = new java.util.Properties();
+        java.io.File file = new java.io.File(SAVE_FILE);
+        if (!file.exists()) return;
+        try (java.io.FileInputStream fis = new java.io.FileInputStream(file)) {
+            props.load(fis);
+            for (Difficulty d : Difficulty.values()) {
+                String val = props.getProperty(d.name());
+                if (val != null) {
+                    try {
+                        int time = Integer.parseInt(val.trim());
+                        if (time > 0) bestTimes.put(d, time);
+                    } catch (NumberFormatException ignored) {
+                        // Dữ liệu lỗi → bỏ qua (NFR-11)
+                    }
+                }
+            }
+        } catch (java.io.IOException ignored) {
+            // File không đọc được → kỷ lục trống
+        }
     }
 
     /**
-     * Ghi kỷ lục hiện tại ra file {@value #SAVE_FILE}.
-     * Gọi tự động sau mỗi lần {@link #update(Difficulty, int)} thành công.
-     * FR-07
+     * Ghi kỷ lục ra file scores.properties. FR-07
      */
     public void save() {
-        // TODO: dùng ObjectOutputStream hoặc Properties để ghi file
+        java.util.Properties props = new java.util.Properties();
+        for (Map.Entry<Difficulty, Integer> entry : bestTimes.entrySet()) {
+            props.setProperty(entry.getKey().name(), String.valueOf(entry.getValue()));
+        }
+        try (java.io.FileOutputStream fos = new java.io.FileOutputStream(SAVE_FILE)) {
+            props.store(fos, "Minesweeper High Scores");
+        } catch (java.io.IOException ignored) {
+            // Không ghi được → bỏ qua, không crash game
+        }
     }
 }

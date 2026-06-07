@@ -43,6 +43,34 @@ public class Board {
         }
     }
 
+    /**
+     * [UC5.4.5] Tạo Board với mine layout định sẵn (dùng chung cho PvP).
+     * firstClick = false vì mìn đã được đặt sẵn, không cần an toàn click đầu.
+     *
+     * @param rows       số hàng
+     * @param cols       số cột
+     * @param totalMines tổng số mìn
+     * @param mineLayout mảng 2D đánh dấu vị trí mìn (true = có mìn)
+     */
+    public Board(int rows, int cols, int totalMines, boolean[][] mineLayout) {
+        this.rows = rows;
+        this.cols = cols;
+        this.totalMines = totalMines;
+        this.firstClick = false; // Mìn đã được đặt sẵn, bỏ qua bước safe-first-click
+        this.cells = new Cell[rows][cols];
+
+        // Đặt tạo cells và áp dụng layout mìn
+        for (int r = 0; r < rows; r++) {
+            for (int c = 0; c < cols; c++) {
+                this.cells[r][c] = new Cell(r, c);
+                if (mineLayout[r][c]) {
+                    this.cells[r][c].setMine(); // Đặt mìn theo layout có sẵn
+                }
+            }
+        }
+        calculateAdjacentMines(); // Tính số mìn kế cận sau khi đặt xong
+    }
+
     // ── Mine Placement ────────────────────────────────────────
 
     /**
@@ -110,15 +138,17 @@ public class Board {
         }
     }
     public boolean revealCell(int row, int col) {
+        // Board.java - revealCell()
         if (firstClick) {
             placeMines(row, col);
             firstClick = false;
         }
         // Reset danh sách revealed cho lần thao tác này
-//        lastRevealedPositions.clear();
+        // lastRevealedPositions.clear();
 
         if (!inBounds(row, col)) return true;
 
+        // Board.java - revealCell()
         Cell cell = cells[row][col];
 
         if (cell.isRevealed() || cell.isFlagged()) return true;
@@ -134,6 +164,7 @@ public class Board {
         cell.reveal();
         lastRevealedPositions.add(new int[]{row, col});
 
+        // Board.java - revealCell()
         // Nếu ô trống (blank), mở rộng vùng bằng flood fill
         if (cell.isBlank()) {
             floodFill(row, col);
@@ -149,6 +180,7 @@ public class Board {
      * @param row hàng
      * @param col cột
      */
+    // Board.java
     private void floodFill(int row, int col) {
         if (!inBounds(row, col)) return;
 
@@ -248,6 +280,20 @@ public class Board {
         Cell cell = cells[row][col];
         if (!cell.isRevealed()){
             boolean wasFlagged = cell.isFlagged();
+            
+            // UC-1 - 1.1.2: Hệ thống kiểm tra ô chưa mở; tiến hành chuyển đổi trạng thái cờ (toggleFlag).
+            // UC-2 - 2.1.3: Hệ thống gọi toggleFlag để chuyển ô về trạng thái HIDDEN.
+
+            // Kiểm tra điều kiện trước khi cắm/gỡ cờ
+            if (!wasFlagged && flagCount.get() >= totalMines) {
+                // Không cho phép cắm cờ nếu đã đủ số mìn
+                return;
+            }
+            if (wasFlagged && flagCount.get() <= 0) {
+                // Đảm bảo không gỡ cờ khi flagCount = 0 (ngăn âm)
+                return;
+            }
+
             cell.toggleFlag();
             if (!wasFlagged && cell.isFlagged()){
                 flagCount.set(flagCount.get() + 1);
@@ -358,3 +404,4 @@ public class Board {
         lastRevealedPositions.clear();
     }
 }
+

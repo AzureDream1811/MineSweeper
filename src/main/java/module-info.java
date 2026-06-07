@@ -1,6 +1,8 @@
 module com.minesweeper {
     requires javafx.controls;
     requires javafx.fxml;
+    requires transitive javafx.graphics;
+    requires java.sql;
 
     opens com.minesweeper.view to javafx.fxml;
     opens com.minesweeper.controller to javafx.fxml;
@@ -8,4 +10,5 @@ module com.minesweeper {
     exports com.minesweeper;
     exports com.minesweeper.model;
     exports com.minesweeper.view;
+    exports com.minesweeper.controller;
 }

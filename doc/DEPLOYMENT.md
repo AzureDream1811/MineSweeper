@@ -44,7 +44,7 @@ git push
 ### Bước 2: Deploy lên Vercel
 
 1. Vào [vercel.com](https://vercel.com) → **Add New Project**
-2. Import repository chứa `index.html`
+2. Import repository chứa `index.html` vd: src/resources/
 3. Vercel tự detect static site, giữ nguyên settings mặc định
 4. Click **Deploy**
 

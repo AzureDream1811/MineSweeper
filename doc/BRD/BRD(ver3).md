@@ -2,7 +2,7 @@
 
 ## Ứng dụng Game Dò Mìn — Minesweeper Desktop (Java)
 
-**Phiên bản:** 2.0 &nbsp;|&nbsp; **Ngày:** 09/05/2026 &nbsp;|&nbsp;
+**Phiên bản:** 3.0 &nbsp;|&nbsp; **Ngày:** 10/05/2026 &nbsp;|&nbsp;
 
 ---
 
@@ -40,12 +40,50 @@ Phát triển một ứng dụng Desktop game Dò Mìn (Minesweeper) bằng ngô
 bình thường lẫn người chơi chuyên nghiệp. Ứng dụng phải đảm bảo trải nghiệm người dùng mượt mà, trực quan và có tính
 cạnh tranh thông qua hệ thống lưu kỷ lục.
 
+---
+
 ### 1.2. Phạm vi dự án
 
 Dự án tập trung vào việc xây dựng ứng dụng Desktop chạy độc lập (Portable), hỗ trợ đa nền tảng (Windows, macOS, Linux)
 thông qua nền tảng Java (JVM), bao gồm đầy đủ logic trò chơi, giao diện người dùng và hệ thống quản lý kỷ lục.
 
 ---
+
+### 1.3. Các bên liên quan (Stakeholders)
+
+| Bên liên quan                           | Vai trò                       | Mối quan tâm chính                                                  |
+|:----------------------------------------|:------------------------------|:--------------------------------------------------------------------|
+| **Nhóm phát triển**                     | Thiết kế, lập trình, kiểm thử | Hiểu đúng yêu cầu, hoàn thành đúng tiến độ, đảm bảo chất lượng code |
+| **Người chơi giải trí (Casual Player)** | Người dùng cuối               | Trải nghiệm mượt mà, giao diện trực quan, dễ học                    |
+
+---
+
+### 1.4. Phạm vi dự án (Project Scope)
+
+#### Trong phạm vi (In Scope)
+
+- Xây dựng ứng dụng Desktop chạy độc lập bằng Java (Swing/AWT hoặc JavaFX).
+- Triển khai đầy đủ logic trò chơi Minesweeper: mở ô, đặt cờ, chording, đệ quy mở ô trống.
+- Hỗ trợ 3 mức độ khó: Easy (9×9, 10 mìn), Medium (16×16, 40 mìn), Hard (30×16, 99 mìn).
+- Hệ thống đồng hồ bấm giờ và lưu kỷ lục theo từng cấp độ.
+- Giao diện người dùng trực quan với phím tắt cơ bản (F2 reset).
+- Màn hướng dẫn luật chơi tích hợp trong ứng dụng.
+- Đóng gói ứng dụng dạng Portable (JAR hoặc executable).
+
+#### Ngoài phạm vi (Out of Scope)
+
+- Chế độ chơi nhiều người (multiplayer) hoặc chơi mạng online.
+- Bảng xếp hạng toàn cầu hoặc đồng bộ kỷ lục lên server.
+- Chế độ Custom (người dùng tự nhập số hàng, cột, số mìn).
+- Hỗ trợ màn hình cảm ứng (touch screen).
+- Tích hợp âm thanh/nhạc nền.
+
+---
+
+### 1.5. Luồng nghiệp vụ
+
+<img width="609" height="1542" alt="image" src="https://github.com/user-attachments/assets/e9bb8a5e-1f68-4b82-a0b7-98807386d16a" />
+
 
 ## 2. Đối tượng người dùng & User Stories
 
@@ -56,6 +94,7 @@ thông qua nền tảng Java (JVM), bao gồm đầy đủ logic trò chơi, gia
 | **US-01** | Là người chơi giải trí, tôi muốn hệ thống hiển thị số mìn xung quanh ô và cho phép đánh dấu ô nghi ngờ bằng cờ, để xác định vị trí nguy hiểm và suy luận mà không bị nhầm lẫn.          |
 | **US-02** | Là người không có nhiều thời gian, tôi muốn hệ thống tự động mở các ô trống xung quanh khi click vào ô không có mìn lân cận, để tiết kiệm thời gian và tập trung vào phần cần suy luận. |
 | **US-03** | Là người chơi mới, tôi muốn hệ thống hỗ trợ luật chơi và các chức năng cơ bản (tạo game mới, chơi lại, dừng, chơi tiếp) để dễ dàng hiểu và thao tác với game.                           |
+| **US-04** | Là người chơi muốn cải thiện bản thân, tôi muốn xem kỷ lục tốt nhất của mình theo từng cấp độ, để biết mục tiêu cần vượt qua trong ván tiếp theo.                                       |
 
 ---
 
@@ -77,7 +116,8 @@ thông qua nền tảng Java (JVM), bao gồm đầy đủ logic trò chơi, gia
 | **UR-12** | Người chơi thấy đồng hồ đếm thời gian khởi động ngay khi mở ô đầu tiên.                               |
 | **UR-13** | Người chơi có thể xem kỷ lục riêng cho từng cấp độ: Easy, Medium, Hard.                               |
 | **UR-14** | Người chơi có thể dùng phím tắt (ví dụ: `F2`) để reset màn chơi ngay lập tức mà không cần dùng chuột. |
-| **UR-15** | Người chơi được đảm bảo ô đầu tiên click không bao giờ là mìn                                         |
+| **UR-15** | Người chơi được đảm bảo ô đầu tiên click không bao giờ là mìn.                                        |
+| **UR-16** | Người chơi có thể xem màn hướng dẫn luật chơi cơ bản bất cứ lúc nào trong ứng dụng.                   |
 
 ---
 
@@ -136,10 +176,12 @@ thông qua nền tảng Java (JVM), bao gồm đầy đủ logic trò chơi, gia
 
 > Nhóm chức năng bổ sung thêm để hỗ trợ người chơi
 
-|    Mã     | Mô tả                                                       |
-|:---------:|:------------------------------------------------------------|
-| **FR-20** | Hệ thống hỗ trợ phím tắt F2 để reset màn chơi ngay lập tức. |
-| **FR-21** | Hệ thống cung cấp màn hướng dẫn/luật chơi cơ bản.           |
+|    Mã     | Mô tả                                                                                                                                  |
+|:---------:|:---------------------------------------------------------------------------------------------------------------------------------------|
+| **FR-20** | Hệ thống hỗ trợ phím tắt F2 để reset màn chơi ngay lập tức.                                                                            |
+| **FR-21** | Hệ thống cung cấp màn hướng dẫn/luật chơi cơ bản.                                                                                      |
+| **FR-22** | Hệ thống cung cấp chức năng **View Best Record** để hiển thị thời gian tốt nhất riêng biệt cho từng cấp độ (Easy / Medium / Hard).     |
+| **FR-23** | Hệ thống hiển thị toàn bộ vị trí mìn, đánh dấu ô mìn đã nổ bằng màu khác biệt, và vô hiệu hóa bàn cờ ngay lập tức khi người chơi thua. |
 
 ### 4.2. Yêu cầu phi chức năng (Non-Functional Requirements)
 
@@ -216,11 +258,12 @@ thông qua nền tảng Java (JVM), bao gồm đầy đủ logic trò chơi, gia
 
 > Bảng liên kết: **User Story → User Requirement → Functional Requirement**
 
-| User Story | User Requirements                                             | Functional Requirements                                                            |
-|:----------:|:--------------------------------------------------------------|:-----------------------------------------------------------------------------------|
-| **US-01**  | UR-02, UR-03, UR-04, UR-05                                    | FR-09, FR-10, FR-13                                                                |
-| **US-02**  | UR-01                                                         | FR-08, FR-11, FR-12, FR-14                                                         |
-| **US-03**  | UR-06, UR-07, UR-08, UR-09, UR-10, UR-11, UR-12, UR-13, UR-14 | FR-01, FR-02, FR-03, FR-04, FR-05, FR-06, FR-07, FR-15, FR-16, FR-17, FR-18, FR-19 |
+| User Story | User Requirements                                      | Functional Requirements                                                                   |
+|:----------:|:-------------------------------------------------------|:------------------------------------------------------------------------------------------|
+| **US-01**  | UR-02, UR-03, UR-04, UR-05                             | FR-09, FR-10, FR-13                                                                       |
+| **US-02**  | UR-01, UR-15                                           | FR-08, FR-11, FR-12, FR-14                                                                |
+| **US-03**  | UR-06, UR-07, UR-08, UR-09, UR-10, UR-11, UR-12, UR-16 | FR-01, FR-02, FR-03, FR-04, FR-05, FR-06, FR-15, FR-16, FR-17, FR-18, FR-19, FR-20, FR-21 |
+| **US-04**  | UR-13                                                  | FR-07, FR-22                                                                              |
 
 ---
 
